@@ -16,16 +16,17 @@ def exec_query_sql():
                 "status": "error", 
                 "message": "请求体中缺少 'query' 字段"
             }), 400
-        # print(request_data) # {'query':}
+        print(request_data) # {'query':}
         
         # 获取查询语句
         query = request_data["query"]
+
         if not query:
             return jsonify({
                 "status": "error", 
                 "message": "查询语句不能为空"
             }), 400 
-        # print(query) 
+        print(query) 
               
         # 执行SQL
         execute_result = query_sql(query)
@@ -51,4 +52,23 @@ def exec_query_sql():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
 
-# 
+# {"query":"SELECT * FROM `国家重点保护野生动物名录` WHERE 中文名 = '马';}
+
+# {
+# 	"object": "动物",
+# 	"animal": "驼鹿",
+# 	"count": 1,
+# 	"behavior": "正在吃草",
+# 	"status": "健康，自然状态",
+# 	"percentage": 25,
+# 	"confidence": 95,
+# 	"caption": "图中展示了一只驼鹿在吃草",
+# 	"image_id":"08997y8y",
+# 	"sensor_id":"ihoioioijoi",
+# 	"location":"成都",
+# 	"longitude":"133.25",
+# 	"latitude":"35.5",
+# 	"time":"0325",
+# 	"date":"20050726",
+# 	"insert_time":"0326"
+# }  
