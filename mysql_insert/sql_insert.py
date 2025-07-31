@@ -11,7 +11,7 @@ def execute_sql(sql: str) -> dict:
         return {"status": "error", "message": "仅允许执行 INSERT 或 UPDATE 语句"}
 
     config = get_db_config()
-    print(config)
+    # print(config)
 
     try:
         connection = pymysql.connect(**config)

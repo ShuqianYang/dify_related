@@ -7,8 +7,8 @@ def generate_sql(data: dict) -> dict:
     """
     try:
         table_name = "image_info"
-        required_fields = ['object', 'count', 'behavior', 'status', 'percentage', 'confidence', 'caption', 'image_id', 'sensor_id', 'location', 'longitude', 'latitude', 'time', 'date', 'insert_time']
-        optional_fields = ['animal']
+        required_fields = ['object', 'count', 'behavior', 'status', 'percentage', 'confidence', 'caption', 'image_id', 'sensor_id', 'location', 'longitude', 'latitude', 'time', 'date']
+        optional_fields = ['animal', 'insert_time']
 
         missing_fields = [field for field in required_fields if field not in data]
         if missing_fields:

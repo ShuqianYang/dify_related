@@ -10,6 +10,8 @@ def exec_query_sql():
     """
     # 从POST请求中获取JSON数据
     try:
+        # 情况1：传入字典
+        # {"query": "SELECT * FROM `国家重点保护野生动物名录` WHERE 中文名 = '驼鹿';"}
         request_data = request.get_json()
         if not request_data or "query" not in request_data:
             return jsonify({
@@ -17,10 +19,16 @@ def exec_query_sql():
                 "message": "请求体中缺少 'query' 字段"
             }), 400
         print(request_data) # {'query':}
-        
+        print(type(request_data))
         # 获取查询语句
         query = request_data["query"]
 
+        # # 情况2：传入字符串
+        # # "SELECT * FROM `国家重点保护野生动物名录` WHERE 中文名 = '驼鹿';"
+        # query = request.get_json()
+        # print(query)
+        # print(type(query)) # str
+        
         if not query:
             return jsonify({
                 "status": "error", 

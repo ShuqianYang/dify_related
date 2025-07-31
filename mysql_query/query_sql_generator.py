@@ -1,10 +1,11 @@
 def main(arg: str) -> dict:
-    arg = json.loads(arg)
+    # 将一个 JSON 格式的字符串 arg 解析为对应的 Python 对象
+    arg = json.loads(arg) 
     query_animal = arg["animal"]
     print(query_animal)
     query_sql = f"SELECT * FROM `国家重点保护野生动物名录` WHERE 中文名 = '{query_animal}'"
     return {
-        "result": query_sql
+        "result": {"query": query_sql}  # 输出格式object
     }
 
 arg =  {

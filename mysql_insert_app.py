@@ -18,14 +18,15 @@ def exec_sql():
                 "status": "error", 
                 "message": "请求体中缺少 'data' 字段"
             }), 400
-        # print(request_data) # {'data':}
+        print("request_data:", request_data) # {'data':}
         
         # 获取JSON字符串
         json_data = request_data["data"]
-        # print(json_data)  # {'object': '动物', ...}
+        print(json_data)  # {'object': '动物', ...}
         
         # 生成SQL语句
         generate_result = generate_sql(json_data)
+        print(generate_result)
         
         # 检查生成结果
         if generate_result["status"] != "success":
