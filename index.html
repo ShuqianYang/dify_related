@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>动态 ECharts</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+
+<body>
+    <div id="main" style="width: 600px;height:400px;"></div>
+
+    <script>
+        var chart = echarts.init(document.getElementById('main'));
+
+        function fetchDataAndUpdate() {
+            fetch('http://localhost:5000/data')  // 注意跨域或端口
+                .then(response => response.json())
+                .then(data => {
+                    var option = {
+                        title: { text: '实时数据图表' },
+                        tooltip: {},
+                        xAxis: { data: data.x },
+                        yAxis: {},
+                        series: [{
+                            name: '数值',
+                            type: 'bar',
+                            data: data.y
+                        }]
+                    };
+                    chart.setOption(option);
+                });
+        }
+
+        // 初始加载
+        fetchDataAndUpdate();
+
+        // 每5秒更新一次
+        setInterval(fetchDataAndUpdate, 5000);
+    </script>
+</body>
+
+</html>
