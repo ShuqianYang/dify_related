@@ -10,7 +10,8 @@
 let chartInstances = {
     timeseriesChart: null,  // 时间序列趋势图实例
     animalChart: null,      // 动物种类分布图实例
-    locationChart: null     // 地理位置分布图实例
+    locationChart: null,    // 地理位置分布图实例
+    activityChart: null     // 动物活动时间分布图实例
 };
 
 // 实时更新定时器，用于控制数据刷新频率
@@ -90,6 +91,7 @@ function initializeCharts() {
         initializeTimeseriesChart(); // 按日期统计的图像识别数量变化趋势图
         initializeAnimalChart();     // 动物种类分布图
         initializeLocationChart();   // 地理位置分布图
+        initializeActivityChart();   // 动物活动时间分布图
         
         // 加载动物种类列表到筛选下拉菜单
         loadAnimalList();
@@ -175,7 +177,7 @@ function initializeTimeseriesChart() {
         series: [{
             name: '识别数量',
             type: 'line', // 折线图
-            smooth: true, // 平滑曲线
+            smooth: false, // 不使用平滑曲线
             data: [],
             itemStyle: {
                 color: '#1890ff',
@@ -390,6 +392,118 @@ function initializeLocationChart() {
 }
 
 /**
+ * 初始化动物活动时间分布图
+ * 功能：创建24小时活动时间分布的柱状图
+ */
+function initializeActivityChart() {
+    const chartDom = document.getElementById('activityChart');
+    chartInstances.activityChart = echarts.init(chartDom);
+    
+    const option = {
+        title: {
+            text: '动物活动时间分布',
+            left: 'center',
+            textStyle: {
+                color: '#1890ff',
+                fontSize: 16,
+                fontWeight: 'bold'
+            }
+        },
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderColor: '#1890ff',
+            borderWidth: 1,
+            textStyle: {
+                color: '#333'
+            },
+            formatter: function(params) {
+                const hour = params[0].name;
+                const count = params[0].value;
+                return `${hour}:00 - ${hour}:59<br/>识别数量: ${count}`;
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'category',
+            data: Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0')),
+            axisLabel: {
+                color: '#666',
+                formatter: '{value}:00'
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#e8e8e8'
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            name: '识别数量',
+            nameTextStyle: {
+                color: '#666'
+            },
+            axisLabel: {
+                color: '#666'
+            },
+            axisLine: {
+                lineStyle: {
+                    color: '#e8e8e8'
+                }
+            },
+            splitLine: {
+                lineStyle: {
+                    color: '#f0f0f0'
+                }
+            }
+        },
+        series: [{
+            name: '识别数量',
+            type: 'bar',
+            data: new Array(24).fill(0),
+            itemStyle: {
+                color: {
+                    type: 'linear',
+                    x: 0,
+                    y: 0,
+                    x2: 0,
+                    y2: 1,
+                    colorStops: [{
+                        offset: 0, color: '#40a9ff'
+                    }, {
+                        offset: 1, color: '#1890ff'
+                    }]
+                },
+                borderRadius: [4, 4, 0, 0]
+            },
+            emphasis: {
+                itemStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0, color: '#0050b3'
+                        }, {
+                            offset: 1, color: '#1890ff'
+                        }]
+                    }
+                }
+            }
+        }]
+    };
+    
+    chartInstances.activityChart.setOption(option);
+}
+
+/**
  * ========== 数据获取和更新函数 ==========
  */
 
@@ -405,7 +519,8 @@ async function loadAllChartsData() {
         await Promise.all([
             loadTimeseriesData(),
             loadAnimalData(), 
-            loadLocationData()
+            loadLocationData(),
+            loadActivityData()
         ]);
         
         console.log('所有图表数据加载完成');
@@ -425,13 +540,15 @@ async function loadAnimalList() {
         const data = await response.json();
         
         if (data && data.status === 'success' && Array.isArray(data.data)) {
-            // 更新时间序列图表的筛选下拉菜单
+            // 更新各图表的筛选下拉菜单
             const timeseriesSelect = document.getElementById('timeseriesAnimalFilter');
             const locationSelect = document.getElementById('locationAnimalFilter');
+            const activitySelect = document.getElementById('activityAnimalFilter');
             
             // 清空现有选项（保留"所有动物"选项）
             timeseriesSelect.innerHTML = '<option value="all">所有动物</option>';
             locationSelect.innerHTML = '<option value="all">所有动物</option>';
+            activitySelect.innerHTML = '<option value="all">所有动物</option>';
             
             // 添加动物种类选项
             data.data.forEach(animal => {
@@ -444,6 +561,11 @@ async function loadAnimalList() {
                 locationOption.value = animal;
                 locationOption.textContent = animal;
                 locationSelect.appendChild(locationOption);
+                
+                const activityOption = document.createElement('option');
+                activityOption.value = animal;
+                activityOption.textContent = animal;
+                activitySelect.appendChild(activityOption);
             });
         }
     } catch (error) {
@@ -485,14 +607,20 @@ async function loadTimeseriesData(animalFilter = null) {
 }
 
 /**
- * 获取动物种类分布数据
- * API接口：/api/chart-data
+ * 获取动物种类分布数据（支持时间筛选）
+ * API接口：/api/chart-data?days=天数
  * 返回格式：{status: 'success', data: [{animal: "狮子", count: 25}]}
  */
-async function loadAnimalData() {
+async function loadAnimalData(daysFilter = null) {
     try {
+        // 构建请求URL，支持时间筛选
+        let url = '/api/chart-data';
+        if (daysFilter) {
+            url += `?days=${daysFilter}`;
+        }
+        
         // 请求数据并解析
-        const response = await fetch('/api/chart-data');
+        const response = await fetch(url);
         const data = await response.json();
         
         // data 不为空；data.data 是一个数组；chartInstances.animalChart（前面初始化好的 ECharts 实例）已存在。
@@ -544,6 +672,39 @@ async function loadLocationData(animalFilter = null) {
         }
     } catch (error) {
         console.error('地理位置数据获取失败:', error);
+    }
+}
+
+/**
+ * 获取动物活动时间分布数据（支持动物筛选）
+ * API接口：/api/activity-data?animal=动物名称
+ * 返回格式：{status: 'success', data: {0: 5, 1: 3, 2: 0, ..., 23: 8}}
+ */
+async function loadActivityData(animalFilter = null) {
+    try {
+        let url = '/api/activity-data';
+        if (animalFilter && animalFilter !== 'all') {
+            url += `?animal=${encodeURIComponent(animalFilter)}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.status === 'success' && data.data && chartInstances.activityChart) {
+            // 将小时数据转换为24小时数组
+            const hourlyData = new Array(24).fill(0);
+            for (let hour = 0; hour < 24; hour++) {
+                hourlyData[hour] = data.data[hour] || 0;
+            }
+            
+            chartInstances.activityChart.setOption({
+                series: [{
+                    data: hourlyData
+                }]
+            });
+        }
+    } catch (error) {
+        console.error('活动时间数据获取失败:', error);
     }
 }
 
@@ -652,6 +813,30 @@ function onLocationFilterChange() {
     
     // 重新加载地理位置数据
     loadLocationData(selectedAnimal);
+}
+
+/**
+ * 动物种类图表时间筛选器变化回调
+ */
+function onAnimalTimeFilterChange() {
+    const select = document.getElementById('animalTimeFilter');
+    const selectedDays = select.value;
+    console.log('动物种类图表时间筛选器变化:', selectedDays || '所有时间');
+    
+    // 重新加载动物种类数据，空值表示所有时间
+    loadAnimalData(selectedDays || null);
+}
+
+/**
+ * 活动时间图表动物筛选器变化回调
+ */
+function onActivityFilterChange() {
+    const select = document.getElementById('activityAnimalFilter');
+    const selectedAnimal = select.value;
+    console.log('活动时间图表筛选器变化:', selectedAnimal);
+    
+    // 重新加载活动时间数据
+    loadActivityData(selectedAnimal);
 }
 
 // 页面DOM加载完成后开始加载ECharts库。调用 loadECharts()"的事件处理函数，开始运行

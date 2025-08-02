@@ -165,9 +165,16 @@ body {
 /* ========== 图表网格布局 ========== */
 .charts-grid {
     display: grid; /* 网格布局 */
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* 响应式列布局 */
+    grid-template-columns: repeat(2, 1fr); /* 2列固定布局 */
     gap: 20px; /* 网格间距 */
     padding: 20px; /* 内边距 */
+}
+
+/* 响应式布局：小屏幕时改为单列 */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ========== 单个图表容器样式 ========== */

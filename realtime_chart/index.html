@@ -68,6 +68,17 @@
             <!-- ========== 图表2：不同动物种类的识别数量分布情况 ========== -->
             <div class="chart-container">
                 <div class="chart-title">🦁 不同动物种类的识别数量分布情况</div>
+                <div class="chart-filter">
+                    <label for="animalTimeFilter">时间范围：</label>
+                    <select id="animalTimeFilter" onchange="onAnimalTimeFilterChange()">
+                        <option value="">所有时间</option>
+                        <option value="1">最近1天</option>
+                        <option value="7" selected>最近7天</option>
+                        <option value="30">最近30天</option>
+                        <option value="180">最近6个月</option>
+                        <option value="365">最近1年</option>
+                    </select>
+                </div>
                 <div id="animalChart" class="chart"></div>
             </div>
 
@@ -81,6 +92,18 @@
                     </select>
                 </div>
                 <div id="locationChart" class="chart"></div>
+            </div>
+
+            <!-- ========== 图表4：动物活动时间分布图 ========== -->
+            <div class="chart-container">
+                <div class="chart-title">🕐 动物活动时间分布图</div>
+                <div class="chart-filter">
+                    <label for="activityAnimalFilter">筛选动物种类：</label>
+                    <select id="activityAnimalFilter" onchange="onActivityFilterChange()">
+                        <option value="all">所有动物</option>
+                    </select>
+                </div>
+                <div id="activityChart" class="chart"></div>
             </div>
         </div>
     </div>

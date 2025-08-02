@@ -1,16 +1,29 @@
 import pymysql
 from realtime_chart.db_config import get_db_config
 
-def get_realtime_data():
-    """从image_info数据库获取图像识别统计数据"""
+def get_realtime_data(days_filter=None):
+    """从image_info数据库获取图像识别统计数据（支持时间筛选）"""
     try:
         db_config = get_db_config()
         connection = pymysql.connect(**db_config)
         
         with connection.cursor() as cursor:
-            # 查询动物识别统计数据，按照顺序从高到低排序
-            sql = "SELECT animal, COUNT(*) as count FROM image_info GROUP BY animal ORDER BY count DESC LIMIT 10;"
-            cursor.execute(sql)
+            # 构建SQL查询，支持时间筛选
+            if days_filter:
+                sql = """
+                SELECT animal, COUNT(*) as count 
+                FROM image_info 
+                WHERE date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+                GROUP BY animal 
+                ORDER BY count DESC 
+                LIMIT 10;
+                """
+                cursor.execute(sql, (days_filter,))
+            else:
+                # 查询动物识别统计数据，按照顺序从高到低排序
+                sql = "SELECT animal, COUNT(*) as count FROM image_info GROUP BY animal ORDER BY count DESC LIMIT 10;"
+                cursor.execute(sql)
+            
             result = cursor.fetchall()
             
             # 转换为字典列表

@@ -5,6 +5,7 @@ from realtime_chart.get_realtime_data import get_realtime_data
 from realtime_chart.get_location_data import get_location_data
 from realtime_chart.get_timeseries_data import get_time_series_data
 from realtime_chart.get_animal_list import get_animal_list
+from realtime_chart.get_activity_data import get_activity_data
 # from realtime_chart.sql_query import query_sql
 
 
@@ -33,8 +34,15 @@ def debug():
 
 @app.route("/api/chart-data")
 def api_chart_data():
-    """提供图像识别对象统计数据API"""
-    return jsonify(get_realtime_data())
+    """动物种类分布数据API（支持时间筛选）"""
+    try:
+        days_filter = request.args.get('days')  # 按时间筛选
+        if days_filter:
+            days_filter = int(days_filter)
+        data = get_realtime_data(days_filter)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/api/location-data")
 def api_location_data():
@@ -52,6 +60,16 @@ def api_timeseries_data():
 def api_animal_list():
     """提供动物种类列表API"""
     return jsonify(get_animal_list())
+
+@app.route("/api/activity-data")
+def api_activity_data():
+    """动物活动时间分布数据API"""
+    try:
+        animal_filter = request.args.get('animal')
+        data = get_activity_data(animal_filter)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 if __name__ == "__main__":
