@@ -1,16 +1,24 @@
 import pymysql
 from realtime_chart.db_config import get_db_config
 
-def get_location_data():
-    """从image_info数据库获取地理位置统计数据"""
+def get_location_data(animal_filter=None):
+    """从image_info数据库获取地理位置统计数据
+    
+    Args:
+        animal_filter (str, optional): 动物种类筛选条件，如果为None则显示所有动物
+    """
     try:
         db_config = get_db_config()
         connection = pymysql.connect(**db_config)
         
         with connection.cursor() as cursor:
-            # 查询地理位置统计数据，从高到低排序
-            sql = "SELECT location, COUNT(*) as count FROM image_info GROUP BY location ORDER BY count DESC LIMIT 10;"
-            cursor.execute(sql)
+            # 构建SQL查询，根据是否有动物筛选条件
+            if animal_filter and animal_filter != 'all':
+                sql = "SELECT location, COUNT(*) as count FROM image_info WHERE animal = %s GROUP BY location ORDER BY count DESC LIMIT 10;"
+                cursor.execute(sql, (animal_filter,))
+            else:
+                sql = "SELECT location, COUNT(*) as count FROM image_info GROUP BY location ORDER BY count DESC LIMIT 10;"
+                cursor.execute(sql)
             result = cursor.fetchall()
             
             # 转换为字典列表

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面</title>
+</head>
+<body>
+    <h1>JavaScript调试页面</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        console.log('调试页面加载开始');
+        
+        // 测试基本JavaScript功能
+        document.getElementById('debug-info').innerHTML = '<p>JavaScript正常工作</p>';
+        
+        // 测试API调用
+        async function testAPI() {
+            try {
+                console.log('测试API调用...');
+                const response = await fetch('/api/animal-list');
+                const data = await response.json();
+                console.log('API响应:', data);
+                
+                document.getElementById('debug-info').innerHTML += 
+                    '<p>API调用成功: ' + JSON.stringify(data) + '</p>';
+            } catch (error) {
+                console.error('API调用失败:', error);
+                document.getElementById('debug-info').innerHTML += 
+                    '<p>API调用失败: ' + error.message + '</p>';
+            }
+        }
+        
+        // 测试ECharts CDN加载
+        function testECharts() {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+            script.onload = function() {
+                console.log('ECharts加载成功');
+                document.getElementById('debug-info').innerHTML += 
+                    '<p>ECharts加载成功，版本: ' + echarts.version + '</p>';
+            };
+            script.onerror = function() {
+                console.log('ECharts加载失败');
+                document.getElementById('debug-info').innerHTML += 
+                    '<p>ECharts加载失败</p>';
+            };
+            document.head.appendChild(script);
+        }
+        
+        // 页面加载完成后执行测试
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成');
+            testAPI();
+            testECharts();
+        });
+    </script>
+</body>
+</html>

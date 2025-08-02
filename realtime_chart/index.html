@@ -56,6 +56,12 @@
             <!-- ========== 图表1：按日期统计的图像识别数量变化趋势 ========== -->
             <div class="chart-container">
                 <div class="chart-title">📈 按日期统计的图像识别数量变化趋势</div>
+                <div class="chart-filter">
+                    <label for="timeseriesAnimalFilter">筛选动物种类：</label>
+                    <select id="timeseriesAnimalFilter" onchange="onTimeseriesFilterChange()">
+                        <option value="all">所有动物</option>
+                    </select>
+                </div>
                 <div id="timeseriesChart" class="chart"></div>
             </div>
 
@@ -68,6 +74,12 @@
             <!-- ========== 图表3：不同地理位置动物识别数量分布情况 ========== -->
             <div class="chart-container">
                 <div class="chart-title">🌍 不同地理位置动物识别数量分布情况</div>
+                <div class="chart-filter">
+                    <label for="locationAnimalFilter">筛选动物种类：</label>
+                    <select id="locationAnimalFilter" onchange="onLocationFilterChange()">
+                        <option value="all">所有动物</option>
+                    </select>
+                </div>
                 <div id="locationChart" class="chart"></div>
             </div>
         </div>

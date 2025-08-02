@@ -198,6 +198,47 @@ body {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* 文字阴影 */
 }
 
+/* ========== 图表筛选器样式 ========== */
+.chart-filter {
+    margin-bottom: 15px;
+    text-align: center;
+    padding: 8px;
+    background: #f8fbff;
+    border-radius: 6px;
+    border: 1px solid #d9e9ff;
+}
+
+.chart-filter label {
+    color: #1890ff;
+    font-weight: 500;
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+.chart-filter select {
+    padding: 6px 12px;
+    border: 2px solid #1890ff;
+    border-radius: 6px;
+    background: white;
+    color: #1890ff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.chart-filter select:hover {
+    background: #f0f8ff;
+    border-color: #0066cc;
+}
+
+.chart-filter select:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+}
+
 /* ========== 图表内容区域样式 ========== */
 .chart {
     height: 350px; /* 图表高度 */

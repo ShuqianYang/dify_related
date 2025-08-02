@@ -91,6 +91,9 @@ function initializeCharts() {
         initializeAnimalChart();     // 动物种类分布图
         initializeLocationChart();   // 地理位置分布图
         
+        // 加载动物种类列表到筛选下拉菜单
+        loadAnimalList();
+        
         // 加载所有图表的初始数据
         loadAllChartsData();
         
@@ -171,7 +174,7 @@ function initializeTimeseriesChart() {
         },
         series: [{
             name: '识别数量',
-            type: 'line',
+            type: 'line', // 折线图
             smooth: true, // 平滑曲线
             data: [],
             itemStyle: {
@@ -412,13 +415,55 @@ async function loadAllChartsData() {
 }
 
 /**
- * 获取时间序列数据
- * API接口：/api/timeseries-data
+ * 加载动物种类列表
+ * API接口：/api/animal-list
+ * 返回格式：{status: 'success', data: ["狮子", "老虎", "大象"]}
+ */
+async function loadAnimalList() {
+    try {
+        const response = await fetch('/api/animal-list');
+        const data = await response.json();
+        
+        if (data && data.status === 'success' && Array.isArray(data.data)) {
+            // 更新时间序列图表的筛选下拉菜单
+            const timeseriesSelect = document.getElementById('timeseriesAnimalFilter');
+            const locationSelect = document.getElementById('locationAnimalFilter');
+            
+            // 清空现有选项（保留"所有动物"选项）
+            timeseriesSelect.innerHTML = '<option value="all">所有动物</option>';
+            locationSelect.innerHTML = '<option value="all">所有动物</option>';
+            
+            // 添加动物种类选项
+            data.data.forEach(animal => {
+                const timeseriesOption = document.createElement('option');
+                timeseriesOption.value = animal;
+                timeseriesOption.textContent = animal;
+                timeseriesSelect.appendChild(timeseriesOption);
+                
+                const locationOption = document.createElement('option');
+                locationOption.value = animal;
+                locationOption.textContent = animal;
+                locationSelect.appendChild(locationOption);
+            });
+        }
+    } catch (error) {
+        console.error('动物列表获取失败:', error);
+    }
+}
+
+/**
+ * 获取时间序列数据（支持动物筛选）
+ * API接口：/api/timeseries-data?animal=动物名称
  * 返回格式：{status: 'success', data: [{date: "2024-01-01", count: 10, confidence: 0.95, percentage: 85.5}]}
  */
-async function loadTimeseriesData() {
+async function loadTimeseriesData(animalFilter = null) {
     try {
-        const response = await fetch('/api/timeseries-data');
+        let url = '/api/timeseries-data';
+        if (animalFilter && animalFilter !== 'all') {
+            url += `?animal=${encodeURIComponent(animalFilter)}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data && data.status === 'success' && Array.isArray(data.data) && chartInstances.timeseriesChart) {
@@ -470,13 +515,18 @@ async function loadAnimalData() {
 }
 
 /**
- * 获取地理位置分布数据
- * API接口：/api/location-data
+ * 获取地理位置分布数据（支持动物筛选）
+ * API接口：/api/location-data?animal=动物名称
  * 返回格式：{status: 'success', data: [{location: "北京", count: 15}]}
  */
-async function loadLocationData() {
+async function loadLocationData(animalFilter = null) {
     try {
-        const response = await fetch('/api/location-data');
+        let url = '/api/location-data';
+        if (animalFilter && animalFilter !== 'all') {
+            url += `?animal=${encodeURIComponent(animalFilter)}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data && data.status === 'success' && Array.isArray(data.data) && chartInstances.locationChart) {
@@ -576,5 +626,33 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
     return false;
 };
 
-// 页面DOM加载完成后开始加载ECharts库
+/**
+ * ========== 筛选器回调函数 ==========
+ */
+
+/**
+ * 时间序列图表动物筛选器变化回调
+ */
+function onTimeseriesFilterChange() {
+    const select = document.getElementById('timeseriesAnimalFilter');
+    const selectedAnimal = select.value;
+    console.log('时间序列图表筛选器变化:', selectedAnimal);
+    
+    // 重新加载时间序列数据
+    loadTimeseriesData(selectedAnimal);
+}
+
+/**
+ * 地理位置图表动物筛选器变化回调
+ */
+function onLocationFilterChange() {
+    const select = document.getElementById('locationAnimalFilter');
+    const selectedAnimal = select.value;
+    console.log('地理位置图表筛选器变化:', selectedAnimal);
+    
+    // 重新加载地理位置数据
+    loadLocationData(selectedAnimal);
+}
+
+// 页面DOM加载完成后开始加载ECharts库。调用 loadECharts()"的事件处理函数，开始运行
 document.addEventListener('DOMContentLoaded', loadECharts);

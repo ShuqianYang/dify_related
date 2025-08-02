@@ -755,7 +755,7 @@
         /**
          * 获取时间序列数据
          * API接口：/api/timeseries-data
-         * 返回格式：[{date: "2024-01-01", count: 10, confidence: 0.95, percentage: 85.5}]
+         * 返回格式：{status: 'success', data: [{date: "2024-01-01", count: 10, confidence: 0.95, percentage: 85.5}]}
          */
         async function loadTimeseriesData() {
             try {
@@ -783,7 +783,7 @@
         /**
          * 获取动物种类分布数据
          * API接口：/api/chart-data
-         * 返回格式：[{animal: "狮子", count: 25}]
+         * 返回格式：{status: 'success', data: [{animal: "狮子", count: 25}]}
          */
         async function loadAnimalData() {
             try {
@@ -791,7 +791,7 @@
                 const response = await fetch('/api/chart-data');
                 const data = await response.json();
                 
-                // data 不为空；data 是一个数组；chartInstances.animalChart（前面初始化好的 ECharts 实例）已存在。
+                // data 不为空；data.data 是一个数组；chartInstances.animalChart（前面初始化好的 ECharts 实例）已存在。
                 if (data && data.status === 'success' && Array.isArray(data.data) && chartInstances.animalChart) {
                     const pieData = data.data.map(item => ({  // 将后端格式转成 ECharts 饼图需要的格式
                         name: item.animal,
@@ -813,7 +813,7 @@
         /**
          * 获取地理位置分布数据
          * API接口：/api/location-data
-         * 返回格式：[{location: "北京", count: 15}]
+         * 返回格式：{status: 'success', data: [{location: "北京", count: 15}]}
          */
         async function loadLocationData() {
             try {
