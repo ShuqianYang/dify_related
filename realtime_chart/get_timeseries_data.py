@@ -17,6 +17,14 @@ def get_time_series_data():
             ORDER BY date DESC 
             LIMIT 20
             """
+            # sql = """
+            #     SELECT date, COUNT(*) as count 
+            #     FROM image_info 
+            #     WHERE date IS NOT NULL AND date != '' 
+            #     GROUP BY date 
+            #     ORDER BY date DESC 
+            #     LIMIT 20;
+            # """
             cursor.execute(sql)
             result = cursor.fetchall()
             

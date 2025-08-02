@@ -1,0 +1,252 @@
+/* ========== 动物识别实时图表系统 - 蓝色主题样式 ========== */
+
+/* ========== 全局样式重置和基础设置 ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* 确保padding和border包含在元素宽度内 */
+}
+
+/* ========== 页面主体样式 ========== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 现代化字体栈 */
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 50%, #69c0ff 100%); /* 蓝色渐变背景 */
+    min-height: 100vh; /* 最小高度为视窗高度 */
+    padding: 20px; /* 页面内边距 */
+}
+
+/* ========== 主容器样式 ========== */
+.container {
+    max-width: 1400px; /* 最大宽度限制 */
+    margin: 0 auto; /* 水平居中 */
+    background: rgba(255, 255, 255, 0.95); /* 半透明白色背景 */
+    border-radius: 20px; /* 圆角边框 */
+    box-shadow: 0 20px 40px rgba(24, 144, 255, 0.2); /* 蓝色阴影效果 */
+    overflow: hidden; /* 隐藏溢出内容 */
+    border: 2px solid rgba(24, 144, 255, 0.3); /* 蓝色边框 */
+}
+
+/* ========== 页面标题样式 ========== */
+.header {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 50%, #0050b3 100%); /* 蓝色渐变背景 */
+    color: white; /* 白色文字 */
+    text-align: center; /* 文字居中 */
+    padding: 30px; /* 内边距 */
+    position: relative; /* 相对定位 */
+}
+
+.header h1 {
+    font-size: 2.5em; /* 大标题字体大小 */
+    margin-bottom: 10px; /* 下边距 */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* 文字阴影 */
+}
+
+.header p {
+    font-size: 1.1em; /* 副标题字体大小 */
+    opacity: 0.9; /* 透明度 */
+}
+
+/* ========== 控制面板样式 ========== */
+.controls {
+    background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%); /* 浅蓝色渐变背景 */
+    padding: 20px; /* 内边距 */
+    border-bottom: 1px solid #40a9ff; /* 蓝色底部边框 */
+    display: flex; /* 弹性布局 */
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    gap: 20px; /* 元素间距 */
+    flex-wrap: wrap; /* 允许换行 */
+}
+
+/* ========== 按钮样式 ========== */
+.btn {
+    padding: 12px 24px; /* 内边距 */
+    border: none; /* 无边框 */
+    border-radius: 25px; /* 圆角 */
+    cursor: pointer; /* 鼠标指针 */
+    font-size: 14px; /* 字体大小 */
+    font-weight: 600; /* 字体粗细 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    text-transform: uppercase; /* 大写字母 */
+    letter-spacing: 0.5px; /* 字母间距 */
+}
+
+/* 主要按钮样式 */
+.btn-primary {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%); /* 蓝色渐变背景 */
+    color: white; /* 白色文字 */
+    border: 2px solid #0050b3; /* 深蓝色边框 */
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px); /* 悬停上移效果 */
+    box-shadow: 0 5px 15px rgba(24, 144, 255, 0.4); /* 蓝色悬停阴影 */
+    background: linear-gradient(135deg, #0050b3 0%, #1890ff 100%); /* 悬停时反转渐变 */
+}
+
+/* 成功按钮样式 */
+.btn-success {
+    background: linear-gradient(135deg, #1890ff 0%, #69c0ff 100%); /* 浅蓝色渐变 */
+    color: white;
+    border: 2px solid #40a9ff; /* 蓝色边框 */
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(64, 169, 255, 0.4);
+    background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+}
+
+/* 危险按钮样式 */
+.btn-danger {
+    background: linear-gradient(135deg, #0050b3 0%, #003a8c 100%); /* 深蓝色渐变 */
+    color: white;
+    border: 2px solid #002766; /* 更深蓝色边框 */
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 80, 179, 0.4);
+    background: linear-gradient(135deg, #003a8c 0%, #0050b3 100%);
+}
+
+/* ========== 状态指示器样式 ========== */
+.status {
+    display: flex; /* 弹性布局 */
+    align-items: center; /* 垂直居中 */
+    gap: 10px; /* 元素间距 */
+    padding: 10px 20px; /* 内边距 */
+    border-radius: 20px; /* 圆角 */
+    font-weight: 600; /* 字体粗细 */
+    font-size: 14px; /* 字体大小 */
+}
+
+/* 运行状态样式 */
+.status.running {
+    background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%); /* 浅蓝色渐变背景 */
+    color: #0050b3; /* 深蓝色文字 */
+    border: 2px solid #40a9ff; /* 蓝色边框 */
+}
+
+/* 停止状态样式 */
+.status.stopped {
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%); /* 极浅蓝色渐变背景 */
+    color: #1890ff; /* 蓝色文字 */
+    border: 2px solid #91d5ff; /* 浅蓝色边框 */
+}
+
+/* 状态指示灯样式 */
+.status-indicator {
+    width: 12px; /* 宽度 */
+    height: 12px; /* 高度 */
+    border-radius: 50%; /* 圆形 */
+    background: #1890ff; /* 蓝色背景 */
+}
+
+/* 运行状态指示灯动画 */
+.status.running .status-indicator {
+    background: #40a9ff; /* 亮蓝色背景 */
+    animation: pulse 2s infinite; /* 脉冲动画 */
+}
+
+/* 脉冲动画定义 */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(64, 169, 255, 0.7); /* 初始阴影 */
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(64, 169, 255, 0); /* 扩散阴影 */
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(64, 169, 255, 0); /* 结束阴影 */
+    }
+}
+
+/* ========== 图表网格布局 ========== */
+.charts-grid {
+    display: grid; /* 网格布局 */
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* 响应式列布局 */
+    gap: 20px; /* 网格间距 */
+    padding: 20px; /* 内边距 */
+}
+
+/* ========== 单个图表容器样式 ========== */
+.chart-container {
+    background: white; /* 白色背景 */
+    border-radius: 15px; /* 圆角边框 */
+    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15); /* 蓝色阴影 */
+    overflow: hidden; /* 隐藏溢出内容 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    border: 1px solid rgba(24, 144, 255, 0.2); /* 蓝色边框 */
+}
+
+/* 图表容器悬停效果 */
+.chart-container:hover {
+    transform: translateY(-5px); /* 悬停上移 */
+    box-shadow: 0 15px 35px rgba(24, 144, 255, 0.25); /* 增强阴影 */
+    border-color: #40a9ff; /* 悬停边框颜色 */
+}
+
+/* ========== 图表标题样式 ========== */
+.chart-title {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%); /* 蓝色渐变背景 */
+    color: white; /* 白色文字 */
+    padding: 15px 20px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    font-weight: 600; /* 字体粗细 */
+    text-align: center; /* 文字居中 */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* 文字阴影 */
+}
+
+/* ========== 图表内容区域样式 ========== */
+.chart {
+    height: 350px; /* 图表高度 */
+    padding: 10px; /* 内边距 */
+}
+
+/* ========== 响应式设计 ========== */
+
+/* 平板设备适配 */
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr; /* 单列布局 */
+        gap: 15px; /* 减小间距 */
+    }
+    
+    .chart {
+        height: 300px; /* 减小图表高度 */
+    }
+    
+    .controls {
+        flex-direction: column; /* 垂直排列 */
+        gap: 15px; /* 减小间距 */
+    }
+    
+    .header h1 {
+        font-size: 2em; /* 减小标题字体 */
+    }
+}
+
+/* 手机设备适配 */
+@media (max-width: 480px) {
+    body {
+        padding: 10px; /* 减小页面边距 */
+    }
+    
+    .chart {
+        height: 250px; /* 进一步减小图表高度 */
+    }
+    
+    .btn {
+        padding: 10px 20px; /* 减小按钮内边距 */
+        font-size: 12px; /* 减小按钮字体 */
+    }
+    
+    .header {
+        padding: 20px; /* 减小标题内边距 */
+    }
+    
+    .header h1 {
+        font-size: 1.8em; /* 进一步减小标题字体 */
+    }
+}

@@ -9,7 +9,7 @@ def get_location_data():
         
         with connection.cursor() as cursor:
             # 查询地理位置统计数据，从高到低排序
-            sql = "SELECT location, COUNT(*) as count FROM image_info GROUP BY location ORDER BY count DESC;"
+            sql = "SELECT location, COUNT(*) as count FROM image_info GROUP BY location ORDER BY count DESC LIMIT 10;"
             cursor.execute(sql)
             result = cursor.fetchall()
             

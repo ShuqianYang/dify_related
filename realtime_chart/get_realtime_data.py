@@ -9,7 +9,7 @@ def get_realtime_data():
         
         with connection.cursor() as cursor:
             # 查询动物识别统计数据，按照顺序从高到低排序
-            sql = "SELECT animal, COUNT(*) as count FROM image_info GROUP BY animal ORDER BY count DESC;"
+            sql = "SELECT animal, COUNT(*) as count FROM image_info GROUP BY animal ORDER BY count DESC LIMIT 10;"
             cursor.execute(sql)
             result = cursor.fetchall()
             

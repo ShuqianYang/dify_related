@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
 
 from realtime_chart.get_realtime_data import get_realtime_data
@@ -7,7 +7,7 @@ from realtime_chart.get_timeseries_data import get_time_series_data
 # from realtime_chart.sql_query import query_sql
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='realtime_chart', static_url_path='')
 CORS(app)
 
 @app.route("/")
