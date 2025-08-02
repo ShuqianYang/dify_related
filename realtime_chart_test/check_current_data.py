@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# 检查当前数据状态
 
 import requests
-import json
 
 def check_current_data():
     """检查当前数据状态"""

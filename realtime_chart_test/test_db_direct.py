@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# 直接测试数据库连接和数据
 
 import pymysql
 from realtime_chart.db_config import get_db_config
