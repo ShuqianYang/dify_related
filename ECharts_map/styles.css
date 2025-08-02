@@ -1,0 +1,424 @@
+/* ========== 动物分布地图可视化系统 - 蓝色主题样式 ========== */
+
+/* ========== 全局样式重置和基础设置 ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* 确保padding和border包含在元素宽度内 */
+}
+
+/* ========== 页面主体样式 ========== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 现代化字体栈 */
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 50%, #69c0ff 100%); /* 蓝色渐变背景 */
+    min-height: 100vh; /* 最小高度为视窗高度 */
+    padding: 20px; /* 页面内边距 */
+    color: #333;
+}
+
+/* ========== 主容器样式 ========== */
+.container {
+    max-width: 1400px; /* 最大宽度限制 */
+    margin: 0 auto; /* 水平居中 */
+    background: rgba(255, 255, 255, 0.95); /* 半透明白色背景 */
+    border-radius: 20px; /* 圆角边框 */
+    box-shadow: 0 20px 40px rgba(24, 144, 255, 0.2); /* 蓝色阴影效果 */
+    overflow: hidden; /* 隐藏溢出内容 */
+    border: 2px solid rgba(24, 144, 255, 0.3); /* 蓝色边框 */
+}
+
+/* ========== 页面标题样式 ========== */
+.header {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 50%, #0050b3 100%); /* 蓝色渐变背景 */
+    color: white; /* 白色文字 */
+    text-align: center; /* 文字居中 */
+    padding: 30px; /* 内边距 */
+    position: relative; /* 相对定位 */
+}
+
+.header h1 {
+    font-size: 2.5em; /* 大标题字体大小 */
+    margin-bottom: 10px; /* 下边距 */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* 文字阴影 */
+}
+
+.header p, .subtitle {
+    font-size: 1.1em; /* 副标题字体大小 */
+    opacity: 0.9; /* 透明度 */
+}
+
+/* ========== 控制面板样式 ========== */
+.control-panel {
+    background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%); /* 浅蓝色渐变背景 */
+    padding: 20px; /* 内边距 */
+    border-bottom: 1px solid #40a9ff; /* 蓝色底部边框 */
+    display: flex; /* 弹性布局 */
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    gap: 20px; /* 元素间距 */
+    flex-wrap: wrap; /* 允许换行 */
+}
+
+/* ========== 筛选组件样式 ========== */
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-group label {
+    color: #1890ff;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 6px 12px;
+    border: 2px solid #1890ff;
+    border-radius: 6px;
+    background: white;
+    color: #1890ff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.filter-group select:hover,
+.filter-group input:hover {
+    background: #f0f8ff;
+    border-color: #0066cc;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+}
+
+.filter-group select:hover,
+.filter-group input:hover {
+    background: #4a5568; /* 悬停时深蓝色背景 */
+    border-color: #63b3ed;
+}
+
+.filter-group input[type="date"]:disabled {
+    background: #f5f5f5;
+    color: #999;
+    border-color: #ddd;
+    cursor: not-allowed;
+}
+
+/* ========== 按钮样式 ========== */
+.btn, .btn-primary, .btn-secondary {
+    padding: 12px 24px; /* 内边距 */
+    border: none; /* 无边框 */
+    border-radius: 25px; /* 圆角 */
+    cursor: pointer; /* 鼠标指针 */
+    font-size: 14px; /* 字体大小 */
+    font-weight: 600; /* 字体粗细 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    text-transform: uppercase; /* 大写字母 */
+    letter-spacing: 0.5px; /* 字母间距 */
+    margin-top: 0; /* 移除上边距 */
+}
+
+/* 主要按钮样式 */
+.btn-primary {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%); /* 蓝色渐变背景 */
+    color: white; /* 白色文字 */
+    border: 2px solid #0050b3; /* 深蓝色边框 */
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px); /* 悬停上移效果 */
+    box-shadow: 0 5px 15px rgba(24, 144, 255, 0.4); /* 蓝色悬停阴影 */
+    background: linear-gradient(135deg, #0050b3 0%, #1890ff 100%); /* 悬停时反转渐变 */
+}
+
+/* 次要按钮样式 */
+.btn-secondary {
+    background: linear-gradient(135deg, #1890ff 0%, #69c0ff 100%); /* 浅蓝色渐变 */
+    color: white;
+    border: 2px solid #40a9ff; /* 蓝色边框 */
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(64, 169, 255, 0.4);
+    background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+}
+
+/* ========== 地图容器样式 ========== */
+.map-container {
+    background: white; /* 白色背景 */
+    border-radius: 15px; /* 圆角边框 */
+    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15); /* 浅蓝色阴影 */
+    overflow: hidden; /* 隐藏溢出内容 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    border: 1px solid rgba(24, 144, 255, 0.2); /* 浅蓝色边框 */
+    margin-bottom: 20px;
+}
+
+.map-container:hover {
+    transform: translateY(-5px); /* 悬停上移 */
+    box-shadow: 0 15px 35px rgba(13, 27, 42, 0.5); /* 增强阴影 */
+    border-color: #63b3ed; /* 悬停边框颜色 */
+}
+
+.chart-container {
+    width: 100%;
+    height: 600px;
+    border-radius: 10px;
+    padding: 10px; /* 内边距 */
+}
+
+/* ========== 地图标题样式 ========== */
+.map-title {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%); /* 蓝色渐变背景 */
+    color: white; /* 白色文字 */
+    padding: 15px 20px; /* 内边距 */
+    font-size: 16px; /* 字体大小 */
+    font-weight: 600; /* 字体粗细 */
+    text-align: center; /* 文字居中 */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* 文字阴影 */
+}
+
+/* ========== 统计信息面板样式 ========== */
+.stats-panel {
+    background: white; /* 白色背景 */
+    border-radius: 15px; /* 圆角边框 */
+    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.15); /* 浅蓝色阴影 */
+    overflow: hidden; /* 隐藏溢出内容 */
+    transition: all 0.3s ease; /* 过渡动画 */
+    border: 1px solid rgba(24, 144, 255, 0.2); /* 浅蓝色边框 */
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.stats-panel:hover {
+    transform: translateY(-5px); /* 悬停上移 */
+    box-shadow: 0 15px 35px rgba(24, 144, 255, 0.25); /* 增强阴影 */
+    border-color: #40a9ff; /* 悬停边框颜色 */
+}
+
+.stat-item {
+    text-align: center;
+    flex: 1;
+    min-width: 150px;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: #1890ff; /* 蓝色标签 */
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0050b3; /* 深蓝色数值 */
+}
+
+/* 弹窗样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.close {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.close:hover {
+    opacity: 0.7;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+/* 详情内容样式 */
+.detail-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.animal-type {
+    font-weight: bold;
+    color: #667eea;
+    font-size: 1.1rem;
+}
+
+.detail-time {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.detail-coordinates {
+    color: #667eea;
+    font-size: 0.85em;
+    margin: 5px 0;
+    font-weight: 500;
+}
+
+.detail-caption {
+    color: #333;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.detail-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* 加载提示 */
+.loading {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 999;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .control-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        width: 100%;
+    }
+    
+    .chart-container {
+        height: 400px;
+    }
+    
+    .stats-panel {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+    }
+}
+
+/* 地图点样式增强 */
+.echarts-tooltip {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+    padding: 15px !important;
+}

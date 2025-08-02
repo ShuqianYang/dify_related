@@ -4,7 +4,7 @@
 from flask import Flask, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 import mysql.connector
-from mysql_insert.db_config import get_db_config
+from db_config import get_db_config
 import json
 from datetime import datetime
 import os
@@ -40,16 +40,19 @@ def get_heatmap_data():
             latitude,
             object as animal_type,
             animal,
+            caption,
             COUNT(*) as count,
             AVG(confidence) as avg_confidence,
-            AVG(percentage) as avg_percentage
+            AVG(percentage) as avg_percentage,
+            GROUP_CONCAT(DISTINCT image_path ORDER BY created_at DESC LIMIT 3) as sample_images,
+            MAX(created_at) as last_detection
         FROM image_info 
         WHERE longitude IS NOT NULL 
         AND latitude IS NOT NULL 
         AND longitude != '' 
         AND latitude != ''
         AND object IS NOT NULL
-        GROUP BY sensor_id, location, longitude, latitude, object, animal
+        GROUP BY sensor_id, location, longitude, latitude, object, animal, caption
         ORDER BY sensor_id, count DESC
         """
         
@@ -73,7 +76,10 @@ def get_heatmap_data():
                     'count': row['count'],
                     'avg_confidence': round(float(row['avg_confidence'] or 0), 2),
                     'avg_percentage': round(float(row['avg_percentage'] or 0), 2),
-                    'intensity': row['count']  # 热力图强度
+                    'sample_images': row['sample_images'],
+                    'last_detection': str(row['last_detection']) if row['last_detection'] else None,
+                    'intensity': row['count'],  # 热力图强度
+                    'caption': row['caption'] or f"在{row['location']}发现{row['animal'] or row['animal_type']}，共检测到{row['count']}次"
                 })
             except (ValueError, TypeError) as e:
                 print(f"数据转换错误: {e}, 行数据: {row}")
@@ -187,7 +193,7 @@ def get_animal_stats():
 @app.route('/')
 def index():
     """主页面"""
-    return send_from_directory('heatmap', 'index.html')
+    return send_from_directory('.', 'index.html')
 
 @app.route('/api/heatmap-data')
 def api_heatmap_data():
@@ -218,6 +224,99 @@ def api_animal_stats():
         'data': data,
         'count': len(data)
     })
+
+@app.route('/api/point-details')
+def api_point_details():
+    """获取特定点位的详细信息"""
+    from flask import request
+    
+    lat = request.args.get('lat')
+    lng = request.args.get('lng')
+    
+    if not lat or not lng:
+        return jsonify({'status': 'error', 'message': '缺少坐标参数'})
+    
+    try:
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'status': 'error', 'message': '数据库连接失败'})
+        
+        cursor = connection.cursor(dictionary=True)
+        
+        # 查询该点位的详细信息
+        query = """
+        SELECT 
+            sensor_id,
+            location,
+            longitude,
+            latitude,
+            object as animal_type,
+            animal,
+            caption,
+            image_path,
+            confidence,
+            percentage,
+            created_at,
+            COUNT(*) OVER (PARTITION BY sensor_id, object) as total_count
+        FROM image_info 
+        WHERE ABS(latitude - %s) < 0.001 
+        AND ABS(longitude - %s) < 0.001
+        AND object IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 10
+        """
+        
+        cursor.execute(query, (float(lat), float(lng)))
+        results = cursor.fetchall()
+        
+        if not results:
+            return jsonify({'status': 'error', 'message': '未找到该点位的数据'})
+        
+        # 处理数据
+        point_info = {
+            'sensor_id': results[0]['sensor_id'],
+            'location': results[0]['location'],
+            'latitude': float(lat),
+            'longitude': float(lng),
+            'detections': []
+        }
+        
+        for row in results:
+            point_info['detections'].append({
+                'animal_type': row['animal_type'],
+                'animal': row['animal'] or row['animal_type'],
+                'caption': row['caption'],
+                'image_path': row['image_path'],
+                'confidence': round(float(row['confidence'] or 0), 2),
+                'percentage': round(float(row['percentage'] or 0), 2),
+                'created_at': str(row['created_at']),
+                'total_count': row['total_count']
+            })
+        
+        # 使用第一条记录的caption作为点位的主要描述，如果没有则生成
+        if results[0]['caption']:
+            point_info['caption'] = results[0]['caption']
+        else:
+            animals = {}
+            for detection in point_info['detections']:
+                animal = detection['animal']
+                if animal not in animals:
+                    animals[animal] = 0
+                animals[animal] += 1
+            
+            animal_summary = ', '.join([f"{animal}({count}次)" for animal, count in animals.items()])
+            point_info['caption'] = f"摄像头{point_info['sensor_id']}位于{point_info['location']}，检测到：{animal_summary}"
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            'status': 'success',
+            'data': point_info
+        })
+        
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/heatmap-by-animal/<animal_name>')
 def api_heatmap_by_animal(animal_name):

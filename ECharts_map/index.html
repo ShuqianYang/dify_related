@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动物分布地图可视化系统</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面标题 -->
+        <header class="header">
+            <h1>🗺️ 动物分布地图可视化系统</h1>
+            <p class="subtitle">基于ECharts的智能动物监测地图</p>
+        </header>
+
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="filter-group">
+                <label for="animalSelect">动物种类:</label>
+                <select id="animalSelect">
+                    <option value="all">全部动物</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="startDate">开始日期:</label>
+                <input type="date" id="startDate">
+            </div>
+            
+            <div class="filter-group">
+                <label for="endDate">结束日期:</label>
+                <input type="date" id="endDate">
+            </div>
+            
+            <div class="filter-group">
+                <button id="refreshBtn" class="btn-primary">🔄 刷新数据</button>
+                <button id="resetBtn" class="btn-secondary">🔄 重置筛选</button>
+            </div>
+        </div>
+
+        <!-- 地图容器 -->
+        <div class="map-container">
+            <div class="map-title">动物分布监测点</div>
+            <div id="mapChart" class="chart-container"></div>
+        </div>
+
+        <!-- 统计信息面板 -->
+        <div class="stats-panel">
+            <div class="stat-item">
+                <span class="stat-label">监测点总数:</span>
+                <span id="totalLocations" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">动物记录总数:</span>
+                <span id="totalRecords" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">动物种类数:</span>
+                <span id="totalSpecies" class="stat-value">0</span>
+            </div>
+        </div>
+
+        <!-- 详情弹窗 -->
+        <div id="detailModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">监测点详情</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="modalContent">
+                        <!-- 动态内容将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载提示 -->
+        <div id="loadingIndicator" class="loading">
+            <div class="spinner"></div>
+            <p>正在加载数据...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
