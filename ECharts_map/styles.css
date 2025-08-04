@@ -300,6 +300,113 @@ body {
 }
 
 /* 详情内容样式 */
+.location-summary {
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #b3d9ff;
+}
+
+.location-summary h3 {
+    margin: 0 0 10px 0;
+    color: #0050b3;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.time-range {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* 经纬度信息样式 */
+.coordinates {
+    margin: 8px 0;
+    color: #333;
+    font-size: 0.95rem;
+    background: rgba(24, 144, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid #1890ff;
+    font-family: 'Courier New', monospace;
+}
+
+.coordinates span {
+    font-weight: 600;
+    color: #1890ff;
+    letter-spacing: 0.5px;
+}
+
+.animals-section {
+    margin-top: 15px;
+}
+
+.animals-section h4 {
+    margin: 0 0 15px 0;
+    color: #0050b3;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 2px solid #e6f3ff;
+    padding-bottom: 8px;
+}
+
+.animal-detail {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #1890ff;
+    transition: all 0.3s ease;
+}
+
+.animal-detail:hover {
+    background: #f0f8ff;
+    transform: translateX(5px);
+}
+
+.animal-detail:last-child {
+    margin-bottom: 0;
+}
+
+.animal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.animal-name {
+    font-weight: bold;
+    color: #0050b3;
+    font-size: 1.1rem;
+}
+
+.animal-count {
+    background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.latest-caption {
+    color: #333;
+    line-height: 1.5;
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #e6f3ff;
+}
+
+.latest-caption strong {
+    color: #0050b3;
+    margin-right: 8px;
+}
+
+/* 保留旧样式以兼容 */
 .detail-item {
     background: #f8f9fa;
     border-radius: 10px;

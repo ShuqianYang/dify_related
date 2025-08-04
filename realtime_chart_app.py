@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from realtime_chart.get_animal_list import get_animal_list
 from realtime_chart.get_realtime_data import get_realtime_data
 from realtime_chart.get_location_data import get_location_data
 from realtime_chart.get_timeseries_data import get_time_series_data
-from realtime_chart.get_animal_list import get_animal_list
 from realtime_chart.get_activity_data import get_activity_data
 # from realtime_chart.sql_query import query_sql
 
@@ -32,9 +32,26 @@ def debug():
     except FileNotFoundError:
         return "调试页面文件未找到", 404
 
+
+@app.route("/api/animal-list")
+def api_animal_list():
+    """提供动物种类列表API"""
+    return jsonify(get_animal_list())
+
+# 图表1: 时间序列数据(支持动物种类筛选)
+@app.route("/api/timeseries-data")
+def api_timeseries_data():
+    """提供时间序列数据API"""
+    try:
+        animal_filter = request.args.get('animal', None)
+        return jsonify(get_time_series_data(animal_filter))
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+# 图表2: 动物种类分布数据(支持时间筛选)
 @app.route("/api/chart-data")
 def api_chart_data():
-    """动物种类分布数据API（支持时间筛选）"""
+    """动物种类分布数据API"""
     try:
         days_filter = request.args.get('days')  # 按时间筛选
         if days_filter:
@@ -44,23 +61,14 @@ def api_chart_data():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# 图表3：地理位置统计数据(支持动物种类筛选)
 @app.route("/api/location-data")
 def api_location_data():
     """提供地理位置统计数据API"""
     animal_filter = request.args.get('animal', None)
     return jsonify(get_location_data(animal_filter))
 
-@app.route("/api/timeseries-data")
-def api_timeseries_data():
-    """提供时间序列数据API"""
-    animal_filter = request.args.get('animal', None)
-    return jsonify(get_time_series_data(animal_filter))
-
-@app.route("/api/animal-list")
-def api_animal_list():
-    """提供动物种类列表API"""
-    return jsonify(get_animal_list())
-
+# 图表4：动物活动时间分布数据(支持动物种类筛选)
 @app.route("/api/activity-data")
 def api_activity_data():
     """动物活动时间分布数据API"""

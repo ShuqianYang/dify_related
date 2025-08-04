@@ -4,7 +4,7 @@
     <!-- ========== 页面基础配置 ========== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>动物识别实时图表系统 v2.0</title>
+    <title>动物识别实时图表系统 v3.1</title>
     
     <!-- 强制刷新缓存 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -71,9 +71,9 @@
                 <div class="chart-filter">
                     <label for="animalTimeFilter">时间范围：</label>
                     <select id="animalTimeFilter" onchange="onAnimalTimeFilterChange()">
-                        <option value="">所有时间</option>
+                        <option value="" selected>所有时间</option>
                         <option value="1">最近1天</option>
-                        <option value="7" selected>最近7天</option>
+                        <option value="7">最近7天</option>
                         <option value="30">最近30天</option>
                         <option value="180">最近6个月</option>
                         <option value="365">最近1年</option>

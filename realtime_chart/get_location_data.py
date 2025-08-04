@@ -14,10 +14,23 @@ def get_location_data(animal_filter=None):
         with connection.cursor() as cursor:
             # 构建SQL查询，根据是否有动物筛选条件
             if animal_filter and animal_filter != 'all':
-                sql = "SELECT location, COUNT(*) as count FROM image_info WHERE animal = %s GROUP BY location ORDER BY count DESC LIMIT 10;"
+                sql = """
+                SELECT location, SUM(count) as total_count 
+                FROM image_info 
+                WHERE animal = %s 
+                GROUP BY location 
+                ORDER BY total_count DESC 
+                LIMIT 10;
+                """
                 cursor.execute(sql, (animal_filter,))
             else:
-                sql = "SELECT location, COUNT(*) as count FROM image_info GROUP BY location ORDER BY count DESC LIMIT 10;"
+                sql = """
+                SELECT location, SUM(count) as total_count 
+                FROM image_info 
+                GROUP BY location 
+                ORDER BY total_count DESC 
+                LIMIT 10;
+                """
                 cursor.execute(sql)
             result = cursor.fetchall()
             

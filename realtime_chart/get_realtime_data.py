@@ -11,17 +11,27 @@ def get_realtime_data(days_filter=None):
             # 构建SQL查询，支持时间筛选
             if days_filter:
                 sql = """
-                SELECT animal, COUNT(*) as count 
+                SELECT animal, SUM(count) as total_count 
                 FROM image_info 
                 WHERE date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
                 GROUP BY animal 
-                ORDER BY count DESC 
+                ORDER BY total_count DESC 
                 LIMIT 10;
                 """
                 cursor.execute(sql, (days_filter,))
+                # WHERE命令：
+                # 只保留最近 %s 天（从当前日期 CURDATE() 向前推 %s 天）及以后的记录
+                # DATE_SUB(CURDATE(), INTERVAL %s DAY)：计算出 “今天减去 %s 天” 的日期
+                # date >= …：只选取该日期及以后的行
             else:
-                # 查询动物识别统计数据，按照顺序从高到低排序
-                sql = "SELECT animal, COUNT(*) as count FROM image_info GROUP BY animal ORDER BY count DESC LIMIT 10;"
+                # 查询动物识别统计数据，使用SUM(count)统计每种动物的总数量
+                sql = """
+                SELECT animal, SUM(count) as total_count 
+                FROM image_info 
+                GROUP BY animal 
+                ORDER BY total_count DESC 
+                LIMIT 10;
+                """
                 cursor.execute(sql)
             
             result = cursor.fetchall()

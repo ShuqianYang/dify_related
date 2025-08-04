@@ -26,7 +26,7 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
             longitude,
             latitude,
             location,
-            COUNT(*) as count,
+            SUM(count) as count,
             GROUP_CONCAT(DISTINCT animal) as animal_types
         FROM {table_name}
         WHERE longitude IS NOT NULL 
@@ -116,7 +116,7 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
 
 
 
-def get_location_detail(longitude=None, latitude=None, location=None, limit=10):
+def get_location_detail(longitude=None, latitude=None, location=None, start_date=None, end_date=None, limit=100):
     """
     获取指定坐标或地点的详细信息，包括最新图片
     
@@ -124,6 +124,8 @@ def get_location_detail(longitude=None, latitude=None, location=None, limit=10):
         longitude (float, optional): 经度坐标
         latitude (float, optional): 纬度坐标  
         location (str, optional): 地点名称（备用）
+        start_date (str, optional): 开始日期 (YYYY-MM-DD)
+        end_date (str, optional): 结束日期 (YYYY-MM-DD)
         limit (int): 返回记录数量限制
     
     Returns:
@@ -136,49 +138,65 @@ def get_location_detail(longitude=None, latitude=None, location=None, limit=10):
         
         table_name = get_table_name()
         
-        # 优先使用经纬度坐标查询
+        # 调试：查看数据库中的经纬度格式
+        debug_sql = f"SELECT longitude, latitude, location FROM {table_name} LIMIT 5"
+        cursor.execute(debug_sql)
+        debug_results = cursor.fetchall()
+        print(f"🔍 数据库中的经纬度格式示例: {debug_results}")
+        
+        # 构建基础SQL查询
+        base_sql = f"""
+        SELECT 
+            animal,
+            caption,
+            time,
+            location,
+            longitude,
+            latitude,
+            image_id,
+            count
+        FROM {table_name}
+        WHERE 1=1
+        """
+        
+        params = []
+        
+        # 添加位置筛选条件
         if longitude is not None and latitude is not None:
-            sql = f"""
-            SELECT 
-                animal,
-                caption,
-                time,
-                location,
-                longitude,
-                latitude,
-                image_id
-            FROM {table_name}
-            WHERE longitude = %s AND latitude = %s
-            ORDER BY time DESC
-            LIMIT %s
-            """
-            cursor.execute(sql, (longitude, latitude, limit))
+            # 使用模糊匹配，允许小数点后2位的误差
+            base_sql += " AND ABS(CAST(REPLACE(REPLACE(longitude, 'E', ''), 'W', '') AS DECIMAL(10,6)) - %s) < 0.01"
+            base_sql += " AND ABS(CAST(REPLACE(REPLACE(latitude, 'N', ''), 'S', '') AS DECIMAL(10,6)) - %s) < 0.01"
+            params.extend([longitude, latitude])
         elif location:
-            # 备用：使用地点名称查询
-            sql = f"""
-            SELECT 
-                animal,
-                caption,
-                time,
-                location,
-                longitude,
-                latitude,
-                image_id
-            FROM {table_name}
-            WHERE location = %s
-            ORDER BY time DESC
-            LIMIT %s
-            """
-            cursor.execute(sql, (location, limit))
+            base_sql += " AND location LIKE %s"
+            params.append(f"%{location}%")
         else:
             return []
+        
+        # 添加时间段筛选条件
+        if start_date:
+            # 将YYYY-MM-DD格式转换为YYYYMMDD格式
+            start_date_formatted = start_date.replace('-', '')
+            base_sql += " AND date >= %s"
+            params.append(start_date_formatted)
+            
+        if end_date:
+            # 将YYYY-MM-DD格式转换为YYYYMMDD格式
+            end_date_formatted = end_date.replace('-', '')
+            base_sql += " AND date <= %s"
+            params.append(end_date_formatted)
+        
+        base_sql += " ORDER BY time DESC LIMIT %s"
+        params.append(limit)
+        
+        cursor.execute(base_sql, params)
         
         results = cursor.fetchall()
         
         # 处理结果
         detail_data = []
         for row in results:
-            animal, caption, time, location, lng, lat, image_id = row
+            animal, caption, time, location, lng, lat, image_id, count = row
             detail_data.append({
                 'animal_type': animal,
                 'caption': caption,
@@ -187,7 +205,8 @@ def get_location_detail(longitude=None, latitude=None, location=None, limit=10):
                 'longitude': lng,
                 'latitude': lat,
                 'coordinates': f"({lng}, {lat})" if lng and lat else None,
-                'image_path': f'/static/images/{image_id}.jpg' if image_id else None
+                'image_path': f'/static/images/{image_id}.jpg' if image_id else None,
+                'count': count
             })
         
         cursor.close()

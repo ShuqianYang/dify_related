@@ -1,12 +1,12 @@
 # echarts_map_app.py - 动物分布地图可视化系统主应用
 
-from flask import Flask, render_template, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 import sys
 
 # 添加ECharts_map目录到Python路径
-sys.path.append(os.path.join(os.path.dirname(__file__), 'ECharts_map'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'ECharts_map')) # 子文件夹的函数不用加"ECharts_map"文件夹路径
 
 # 导入数据获取模块
 from get_map_data import get_map_data, get_location_detail
@@ -14,7 +14,8 @@ from get_animal_list import get_animal_list, get_location_list
 
 app = Flask(__name__, 
            template_folder='ECharts_map',
-           static_folder='ECharts_map')
+           static_folder='ECharts_map',
+           static_url_path='/static')
 CORS(app)
 
 @app.route('/')
@@ -22,15 +23,30 @@ def index():
     """主页面"""
     return send_from_directory('ECharts_map', 'index.html')
 
-@app.route('/styles.css')
-def styles():
-    """CSS样式文件"""
-    return send_from_directory('ECharts_map', 'styles.css')
 
-@app.route('/script.js')
-def script():
-    """JavaScript脚本文件"""
-    return send_from_directory('ECharts_map', 'script.js')
+@app.route('/api/animal-list')
+def api_animal_list():
+    """获取动物种类列表API"""
+    try:
+        data = get_animal_list()
+        return jsonify(data)
+        
+    except Exception as e:
+        print(f"获取动物列表API错误: {e}")
+        return jsonify([]), 500
+
+
+@app.route('/api/location-list')  # 待修改
+def api_location_list():
+    """获取地点列表API"""
+    try:
+        data = get_location_list()
+        return jsonify(data)
+        
+    except Exception as e:
+        print(f"获取地点列表API错误: {e}")
+        return jsonify([]), 500
+    
 
 @app.route('/api/map-data')
 def api_map_data():
@@ -53,7 +69,8 @@ def api_map_data():
         print(f"获取地图数据API错误: {e}")
         return jsonify([]), 500
 
-@app.route('/api/location-detail')
+
+@app.route('/api/location-detail')  # 待修改
 def api_location_detail():
     """
     获取地点详情API
@@ -61,47 +78,41 @@ def api_location_detail():
     - longitude: 经度坐标 (优先)
     - latitude: 纬度坐标 (优先)
     - location: 地点名称 (备用)
-    - limit: 返回记录数量限制 (可选，默认10)
+    - start_date: 开始日期 (YYYY-MM-DD)
+    - end_date: 结束日期 (YYYY-MM-DD)
+    - limit: 返回记录数量限制 (可选，默认100)
     """
     try:
         longitude = request.args.get('longitude', type=float)
         latitude = request.args.get('latitude', type=float)
         location = request.args.get('location')
-        limit = request.args.get('limit', 10, type=int)
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        limit = request.args.get('limit', 100, type=int)
+        
+        print(f"🔍 API调用参数: longitude={longitude}, latitude={latitude}, location={location}, start_date={start_date}, end_date={end_date}")
         
         # 检查是否提供了有效的查询参数
         if longitude is None or latitude is None:
             if not location:
                 return jsonify({'error': '需要提供经纬度坐标(longitude, latitude)或地点名称(location)'}), 400
         
-        data = get_location_detail(longitude, latitude, location, limit)
+        data = get_location_detail(
+            longitude=longitude,
+            latitude=latitude,
+            location=location,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit
+        )
+        print(f"📊 API返回数据: {data}")
         return jsonify(data)
         
     except Exception as e:
-        print(f"获取地点详情API错误: {e}")
+        print(f"❌ 获取地点详情API错误: {e}")
         return jsonify([]), 500
 
-@app.route('/api/animal-list')
-def api_animal_list():
-    """获取动物种类列表API"""
-    try:
-        data = get_animal_list()
-        return jsonify(data)
-        
-    except Exception as e:
-        print(f"获取动物列表API错误: {e}")
-        return jsonify([]), 500
 
-@app.route('/api/location-list')
-def api_location_list():
-    """获取地点列表API"""
-    try:
-        data = get_location_list()
-        return jsonify(data)
-        
-    except Exception as e:
-        print(f"获取地点列表API错误: {e}")
-        return jsonify([]), 500
 
 @app.route('/debug')
 def debug():

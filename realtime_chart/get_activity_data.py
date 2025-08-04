@@ -14,7 +14,7 @@ def get_activity_data(animal_filter=None):
                 sql = """
                 SELECT 
                     HOUR(TIME(time)) as hour,
-                    COUNT(*) as count
+                    SUM(count) as total_count
                 FROM image_info 
                 WHERE animal = %s AND time IS NOT NULL AND time != ''
                 GROUP BY HOUR(TIME(time))
@@ -25,7 +25,7 @@ def get_activity_data(animal_filter=None):
                 sql = """
                 SELECT 
                     HOUR(TIME(time)) as hour,
-                    COUNT(*) as count
+                    SUM(count) as total_count
                 FROM image_info 
                 WHERE time IS NOT NULL AND time != ''
                 GROUP BY HOUR(TIME(time))

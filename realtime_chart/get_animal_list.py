@@ -9,6 +9,7 @@ def get_animal_list():
         
         with connection.cursor() as cursor:
             # 查询所有不同的动物种类
+            # 从 image_info 表中获取所有不重复、非空的 animal 值，并按字母顺序排列。
             sql = "SELECT DISTINCT animal FROM image_info WHERE animal IS NOT NULL AND animal != '' ORDER BY animal;"
             cursor.execute(sql)
             result = cursor.fetchall()
