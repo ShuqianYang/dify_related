@@ -370,9 +370,9 @@ class AnimalMapSystem {
             
             // 请求详情数据
             const response = await fetch(`/api/location-detail?${params}`);
-            const details = await response.json();
+            const data = await response.json();
             
-            this.displayLocationDetail(location, details, longitude, latitude);
+            this.displayLocationDetail(location, data, longitude, latitude);
             
         } catch (error) {
             console.error('加载地点详情失败:', error);
@@ -386,8 +386,8 @@ class AnimalMapSystem {
      * 显示地点详情弹窗
      * 处理详情数据并构建弹窗内容
      */
-    displayLocationDetail(location, details, longitude, latitude) {
-        console.log('🔍 显示弹窗详情:', { location, details, longitude, latitude });
+    displayLocationDetail(location, data, longitude, latitude) {
+        console.log('🔍 显示弹窗详情:', { location, data, longitude, latitude });
         
         const modal = document.getElementById('detailModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -395,6 +395,10 @@ class AnimalMapSystem {
         
         // 设置弹窗标题
         modalTitle.textContent = location || '监测点详情';
+        
+        // 处理新的数据结构
+        const details = data.details || [];
+        const latestByAnimal = data.latest_by_animal || {};
         
         if (details.length === 0) {
             modalContent.innerHTML = '<p style="text-align: center; color: #666;">暂无详细数据</p>';
@@ -446,6 +450,11 @@ class AnimalMapSystem {
             Object.keys(animalCounts).forEach(animal => {
                 const count = animalCounts[animal];
                 const caption = latestCaptions[animal] || '暂无描述';
+                const latestData = latestByAnimal[animal] || {};
+                const latestImage = latestData.latest_image;
+                const latestCaption = latestData.latest_caption || caption;
+                const latestTime = latestData.latest_time;
+                const latestDate = latestData.latest_date;
                 
                 content += `
                     <div class="animal-detail">
@@ -453,8 +462,22 @@ class AnimalMapSystem {
                             <span class="animal-name">🦌 ${animal}</span>
                             <span class="animal-count">监测总数：${count}</span>
                         </div>
-                        <div class="latest-caption">
-                            <strong>最新描述：</strong>${caption}
+                        ${latestImage ? `
+                            <div class="latest-image">
+                                <img src="${latestImage}" alt="${animal}最新图片" 
+                                     style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;"
+                                     onerror="this.style.display='none'">
+                            </div>
+                        ` : ''}
+                        <div class="latest-info">
+                            <div class="latest-caption">
+                                <strong>最新描述：</strong>${latestCaption}
+                            </div>
+                            ${latestDate && latestTime ? `
+                                <div class="latest-time">
+                                    <strong>最新记录时间：</strong>${latestDate} ${latestTime}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;

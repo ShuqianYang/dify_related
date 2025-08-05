@@ -14,7 +14,7 @@ from get_animal_list import get_animal_list, get_location_list
 
 app = Flask(__name__, 
            template_folder='ECharts_map',
-           static_folder='ECharts_map',
+           static_folder='ECharts_map/static',
            static_url_path='/static')
 CORS(app)
 
