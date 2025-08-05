@@ -144,7 +144,7 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         debug_results = cursor.fetchall()
         print(f"🔍 数据库中的经纬度格式示例: {debug_results}")
         
-        # 构建基础SQL查询 - 获取最新的图片和描述信息
+        # 构建基础SQL查询 - 获取最新的图片/视频和描述信息
         base_sql = f"""
         SELECT 
             animal,
@@ -156,7 +156,8 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
             image_id,
             count,
             date,
-            path
+            path,
+            type
         FROM {table_name}
         WHERE 1=1
         """
@@ -201,12 +202,13 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         detail_data = []        # 所有记录用列表保存
         
         for row in results:
-            animal, caption, time, location, lng, lat, image_id, count, date, path = row
+            animal, caption, time, location, lng, lat, image_id, count, date, path, media_type = row
             
-            # 为每种动物保存最新的图片和描述信息（因为返回的result是按照时间日期降序排列的，所以第一个记录就是最新的）
+            # 为每种动物保存最新的媒体文件和描述信息（因为返回的result是按照时间日期降序排列的，所以第一个记录就是最新的）
             if animal not in animal_latest_data:
                 animal_latest_data[animal] = {
-                    'latest_image': path if path else None,
+                    'latest_media': path if path else None,
+                    'latest_media_type': media_type if media_type else 'image',  # 默认为图片类型
                     'latest_caption': caption,
                     'latest_time': str(time),
                     'latest_date': str(date)
@@ -221,7 +223,8 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
                 'longitude': lng,
                 'latitude': lat,
                 'coordinates': f"({lng}, {lat})" if lng and lat else None,
-                'image_path': path if path else None,
+                'media_path': path if path else None,
+                'media_type': media_type if media_type else 'image',  # 默认为图片类型
                 'count': count
             })
         
@@ -340,14 +343,15 @@ def main():
                     total_count = sum(animal_counts.values())
                     print(f"   总计: {total_count} 只")
                 
-                # 显示最新图片信息
+                # 显示最新媒体信息
                 if latest_by_animal:
-                    print("\n🖼️ 最新图片信息:")
+                    print("\n🖼️ 最新媒体信息:")
                     for animal, info in latest_by_animal.items():
                         print(f"   {animal}:")
                         print(f"     最新日期: {info.get('latest_date')}")
                         print(f"     最新时间: {info.get('latest_time')}")
-                        print(f"     图片路径: {info.get('latest_image', '无')}")
+                        print(f"     媒体类型: {info.get('latest_media_type', '未知')}")
+                        print(f"     媒体路径: {info.get('latest_media', '无')}")
                         print(f"     描述: {info.get('latest_caption', '无')[:50]}...")
             else:
                 print("⚠️ 未获取到详情数据")

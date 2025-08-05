@@ -451,10 +451,41 @@ class AnimalMapSystem {
                 const count = animalCounts[animal];
                 const caption = latestCaptions[animal] || '暂无描述';
                 const latestData = latestByAnimal[animal] || {};
-                const latestImage = latestData.latest_image;
+                const latestMedia = latestData.latest_media;
+                const latestMediaType = latestData.latest_media_type || 'image';
                 const latestCaption = latestData.latest_caption || caption;
                 const latestTime = latestData.latest_time;
                 const latestDate = latestData.latest_date;
+                
+                // 根据媒体类型生成不同的HTML内容
+                let mediaContent = '';
+                if (latestMedia) {
+                    if (latestMediaType === 'video') {
+                        // 视频内容
+                        mediaContent = `
+                            <div class="latest-media">
+                                <video controls style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;"
+                                       onerror="this.style.display='none'">
+                                    <source src="${latestMedia}" type="video/mp4">
+                                    <source src="${latestMedia}" type="video/webm">
+                                    <source src="${latestMedia}" type="video/ogg">
+                                    您的浏览器不支持视频播放。
+                                </video>
+                                <p style="font-size: 12px; color: #666; margin: 5px 0;">📹 视频文件</p>
+                            </div>
+                        `;
+                    } else {
+                        // 图片内容（默认）
+                        mediaContent = `
+                            <div class="latest-media">
+                                <img src="${latestMedia}" alt="${animal}最新图片" 
+                                     style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;"
+                                     onerror="this.style.display='none'">
+                                <p style="font-size: 12px; color: #666; margin: 5px 0;">🖼️ 图片文件</p>
+                            </div>
+                        `;
+                    }
+                }
                 
                 content += `
                     <div class="animal-detail">
@@ -462,13 +493,7 @@ class AnimalMapSystem {
                             <span class="animal-name">🦌 ${animal}</span>
                             <span class="animal-count">监测总数：${count}</span>
                         </div>
-                        ${latestImage ? `
-                            <div class="latest-image">
-                                <img src="${latestImage}" alt="${animal}最新图片" 
-                                     style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;"
-                                     onerror="this.style.display='none'">
-                            </div>
-                        ` : ''}
+                        ${mediaContent}
                         <div class="latest-info">
                             <div class="latest-caption">
                                 <strong>最新描述：</strong>${latestCaption}
