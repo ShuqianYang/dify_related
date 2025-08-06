@@ -8,9 +8,13 @@ import sys
 # 添加ECharts_map目录到Python路径
 sys.path.append(os.path.join(os.path.dirname(__file__), 'ECharts_map')) # 子文件夹的函数不用加"ECharts_map"文件夹路径
 
-# 导入数据获取模块
-from get_map_data import get_map_data, get_location_detail
-from get_animal_list import get_animal_list, get_location_list
+# 导入数据获取模块 - 使用合并后的功能文件
+from echarts_map_data_functions import (
+    get_map_data, 
+    get_location_detail, 
+    get_animal_list, 
+    get_location_list
+    )
 
 app = Flask(__name__, 
            template_folder='ECharts_map',

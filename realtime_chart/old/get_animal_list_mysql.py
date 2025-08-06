@@ -1,5 +1,5 @@
 import pymysql
-from realtime_chart.db_config import get_db_config
+from realtime_chart.db_config_mysql import get_db_config
 
 def get_animal_list():
     """从image_info数据库获取所有动物种类列表"""

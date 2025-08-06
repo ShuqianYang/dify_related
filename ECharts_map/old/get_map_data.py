@@ -1,6 +1,8 @@
 # get_map_data.py
-import pymysql
-from db_config import get_db_config, get_table_name
+import sqlite3
+from db_config import get_db_path, get_table_name
+from datetime import datetime, timedelta
+import json
 
 def get_map_data(animal_type=None, start_date=None, end_date=None):
     """
@@ -15,8 +17,9 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
         list: 包含地理位置和动物数量的数据列表
     """
     try:
-        # 连接数据库
-        connection = pymysql.connect(**get_db_config())
+        # 连接SQLite数据库
+        db_path = get_db_path()
+        connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
         
         # 构建SQL查询 - 直接使用经纬度坐标
@@ -39,7 +42,7 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
         
         # 添加筛选条件
         if animal_type and animal_type != 'all':
-            base_sql += " AND animal = %s"
+            base_sql += " AND animal = ?"
             params.append(animal_type)
             
         # 使用date字段进行日期筛选
@@ -47,13 +50,13 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
         if start_date:
             # 将YYYY-MM-DD格式转换为YYYYMMDD格式
             start_date_formatted = start_date.replace('-', '')
-            base_sql += " AND date >= %s"
+            base_sql += " AND date >= ?"
             params.append(start_date_formatted)
             
         if end_date:
             # 将YYYY-MM-DD格式转换为YYYYMMDD格式
             end_date_formatted = end_date.replace('-', '')
-            base_sql += " AND date <= %s"
+            base_sql += " AND date <= ?"
             params.append(end_date_formatted)
         
         base_sql += " GROUP BY longitude, latitude, location ORDER BY count DESC"
@@ -132,8 +135,9 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         list: 包含图片和详细信息的数据列表
     """
     try:
-        # 连接数据库
-        connection = pymysql.connect(**get_db_config())
+        # 连接SQLite数据库
+        db_path = get_db_path()
+        connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
         
         table_name = get_table_name()
@@ -167,11 +171,11 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         # 添加位置筛选条件
         if longitude is not None and latitude is not None:
             # 使用模糊匹配，允许小数点后2位的误差
-            base_sql += " AND ABS(CAST(REPLACE(REPLACE(longitude, 'E', ''), 'W', '') AS DECIMAL(10,6)) - %s) < 0.01"
-            base_sql += " AND ABS(CAST(REPLACE(REPLACE(latitude, 'N', ''), 'S', '') AS DECIMAL(10,6)) - %s) < 0.01"
+            base_sql += " AND ABS(CAST(REPLACE(REPLACE(longitude, 'E', ''), 'W', '') AS DECIMAL(10,6)) - ?) < 0.01"
+            base_sql += " AND ABS(CAST(REPLACE(REPLACE(latitude, 'N', ''), 'S', '') AS DECIMAL(10,6)) - ?) < 0.01"
             params.extend([longitude, latitude])
         elif location:
-            base_sql += " AND location LIKE %s"
+            base_sql += " AND location LIKE ?"
             params.append(f"%{location}%")
         else:
             return []
@@ -180,17 +184,17 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         if start_date:
             # 将YYYY-MM-DD格式转换为YYYYMMDD格式
             start_date_formatted = start_date.replace('-', '')
-            base_sql += " AND date >= %s"
+            base_sql += " AND date >= ?"
             params.append(start_date_formatted)
             
         if end_date:
             # 将YYYY-MM-DD格式转换为YYYYMMDD格式
             end_date_formatted = end_date.replace('-', '')
-            base_sql += " AND date <= %s"
+            base_sql += " AND date <= ?"
             params.append(end_date_formatted)
         
         # 按日期和时间排序，获取最新的记录
-        base_sql += " ORDER BY date DESC, time DESC LIMIT %s"
+        base_sql += " ORDER BY date DESC, time DESC LIMIT ?"
         params.append(limit)
         
         cursor.execute(base_sql, params)

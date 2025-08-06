@@ -1,5 +1,5 @@
 import pymysql
-from realtime_chart.db_config import get_db_config
+from realtime_chart.db_config_mysql import get_db_config
 
 def get_realtime_data(days_filter=None):
     """从image_info数据库获取图像识别统计数据（支持时间筛选）"""

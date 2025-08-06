@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from realtime_chart.get_animal_list import get_animal_list
-from realtime_chart.get_realtime_data import get_realtime_data
-from realtime_chart.get_location_data import get_location_data
-from realtime_chart.get_timeseries_data import get_time_series_data
-from realtime_chart.get_activity_data import get_activity_data
-# from realtime_chart.sql_query import query_sql
-
+from realtime_chart.realtime_chart_data_functions import (
+    get_animal_list,
+    get_realtime_data,
+    get_location_data,
+    get_time_series_data,
+    get_activity_data
+)
 
 app = Flask(__name__, static_folder='realtime_chart', static_url_path='')
 CORS(app)

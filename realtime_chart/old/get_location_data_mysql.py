@@ -1,5 +1,5 @@
 import pymysql
-from realtime_chart.db_config import get_db_config
+from realtime_chart.db_config_mysql import get_db_config
 
 def get_location_data(animal_filter=None):
     """从image_info数据库获取地理位置统计数据
