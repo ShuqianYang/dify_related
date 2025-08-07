@@ -41,7 +41,7 @@ def query_sql(sql: str) -> dict:
 
 if __name__ == "__main__":
     # 测试 execute_sql 函数
-    test_sql = "SELECT * FROM `国家重点保护野生动物名录` WHERE 中文名 = '驼鹿';"
+    test_sql = "SELECT DISTINCT 保护级别 FROM protected_species;"
 
     result = query_sql(test_sql)
     print(result)

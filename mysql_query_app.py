@@ -61,7 +61,7 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5002, debug=True)
 
 # SQLite查询示例:
-# {"query":"SELECT * FROM protected_wildlife WHERE 中文名 = '马';"}
+# {"query": "SELECT DISTINCT 保护级别 FROM protected_species;"}
 
 # {
 # 	"object": "动物",
