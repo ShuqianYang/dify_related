@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from mysql_query.sql_query import query_sql
+from mysql_query.sql_query import query_sql  # SQLite版本
 
 app = Flask(__name__)
 
@@ -60,7 +60,8 @@ def exec_query_sql():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5002, debug=True)
 
-# {"query":"SELECT * FROM `国家重点保护野生动物名录` WHERE 中文名 = '马';}
+# SQLite查询示例:
+# {"query":"SELECT * FROM protected_wildlife WHERE 中文名 = '马';"}
 
 # {
 # 	"object": "动物",
@@ -79,4 +80,4 @@ if __name__ == "__main__":
 # 	"time":"0325",
 # 	"date":"20050726",
 # 	"insert_time":"0326"
-# }  
+# }

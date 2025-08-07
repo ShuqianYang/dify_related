@@ -1,7 +1,6 @@
-# app.py
+# SQLite Insert App
 from flask import Flask, request, jsonify
-from mysql_insert.sql_generator import generate_sql
-from mysql_insert.sql_insert import execute_sql
+from mysql_insert.sql_operations import generate_sql, execute_sql, generate_and_execute_sql
 
 app = Flask(__name__)
 
@@ -58,9 +57,52 @@ def exec_sql():
             "message": f"请求处理错误: {str(e)}"
         }), 500
 
+@app.route("/exec-sql-simple", methods=["POST"])
+def exec_sql_simple():
+    """
+    POST /exec-sql-simple
+    使用组合函数简化的SQL执行接口
+    """
+    try:
+        request_data = request.get_json()
+        if not request_data or "data" not in request_data:
+            return jsonify({
+                "status": "error", 
+                "message": "请求体中缺少 'data' 字段"
+            }), 400
+        
+        # 获取JSON数据
+        json_data = request_data["data"]
+        print("request_data:", request_data)
+        print("json_data:", json_data)
+        
+        # 使用组合函数生成并执行SQL
+        result = generate_and_execute_sql(json_data)
+        
+        # 返回结果
+        if result["status"] == "success":
+            return jsonify({
+                "status": "success",
+                "message": result["message"],
+                "sql": result["sql"]
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": result["message"],
+                "sql": result.get("sql", "")
+            }), 500
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"请求处理错误: {str(e)}"
+        }), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
 
+# SQLite版本测试数据示例：
 # {"data":
 # 	{
 # 	"object": "动物",
@@ -78,6 +120,7 @@ if __name__ == "__main__":
 # 	"latitude":"35.5",
 # 	"time":"0325",
 # 	"date":"20050726",
-# 	"insert_time":"0326"
+# 	"type":"野生动物",
+# 	"path":"/images/moose_001.jpg"
 # 	}   
 # }
