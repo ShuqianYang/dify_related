@@ -26,11 +26,17 @@ let isRealTimeActive = false;
  * 特点：自动故障转移，如果一个CDN失败会尝试下一个
  */
 function loadECharts() {
+    // // 定义多个ECharts CDN源，按优先级排序
+    // const cdnList = [
+    //     'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js',       // BootCDN (主要)
+    //     'https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js', // 阿里云镜像 (备用1)
+    //     'https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js'                // 七牛云 (备用2)
+    // ];
+    
     // 定义多个ECharts CDN源，按优先级排序
     const cdnList = [
-        'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js',       // BootCDN (主要)
-        'https://registry.npmmirror.com/echarts/5.4.3/files/dist/echarts.min.js', // 阿里云镜像 (备用1)
-        'https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js'                // 七牛云 (备用2)
+        '/libs/BootCDN_echarts.min.js',  // BootCDN本地版本 (主要)
+        '/libs/Ali_echarts.min.js'       // 阿里云本地版本 (备用)
     ];
     
     let currentIndex = 0; // 当前尝试的CDN索引

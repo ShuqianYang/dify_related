@@ -565,7 +565,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 检查ECharts是否已加载
     if (typeof echarts !== 'undefined') {
         // 从阿里云DataV获取中国地图GeoJSON数据并注册
-        fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+        // fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+        fetch('/static/data/100000_full.json')
             .then(response => response.json())
             .then(geoJson => {
                 // 注册中国地图到ECharts
