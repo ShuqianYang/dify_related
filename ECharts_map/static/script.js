@@ -171,6 +171,28 @@ class AnimalMapSystem {
         // 清空日期输入框，显示所有时间的数据
         document.getElementById('startDate').value = '';
         document.getElementById('endDate').value = '';
+        
+        // 设置日期输入框的本地化属性
+        this.setupDateInputs();
+    }
+
+    /**
+     * 设置日期输入框的本地化格式
+     */
+    setupDateInputs() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        
+        // 设置语言属性
+        if (startDateInput) {
+            startDateInput.setAttribute('lang', 'zh-CN');
+            startDateInput.setAttribute('data-date-format', 'yyyy年mm月dd日');
+        }
+        
+        if (endDateInput) {
+            endDateInput.setAttribute('lang', 'zh-CN');
+            endDateInput.setAttribute('data-date-format', 'yyyy年mm月dd日');
+        }
     }
 
     /**
@@ -569,6 +591,9 @@ class AnimalMapSystem {
  * 等待DOM加载完成后初始化地图系统
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // 设置页面语言环境为中文
+    document.documentElement.lang = 'zh-CN';
+    
     // 检查ECharts是否已加载
     if (typeof echarts !== 'undefined') {
         // 从阿里云DataV获取中国地图GeoJSON数据并注册
