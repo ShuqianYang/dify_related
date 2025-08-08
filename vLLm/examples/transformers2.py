@@ -1,3 +1,14 @@
+"""
+流程：
+1. 加载：加载分词器和模型
+2. 构建输入
+3. 预处理：
+    1. 输入文本转换 tokenizer.apply_chat_template
+    2. 输入分词器
+4. 推理：进行文本生成
+5. 后处理：解析输出内容，去除输入和思考的部分
+"""
+
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 model_name = "Qwen/Qwen3-8B"
@@ -28,7 +39,7 @@ Hugging Face Transformers 库中处理对话或多轮交互时常用的格式，
     2. 限制行为：告诉模型“回答必须保持简洁，不超过两句话。”
     3. 提供背景知识： 给出一些重要的背景信息，比如“以下所有对话都将围绕公司的财务数据展开。”
 """
-    # 它将结构化的 messages 列表转换为模型期望的单个字符串输入。（用于特定模型的模板转换）
+    # 它将结构化的 messages 列表转换为模型期望的单个字符串输入。（apply_chat_template函数用于特定模型的模板转换）
 input = tokenizer.apply_chat_template(
     messages,
     tokenize=False,
