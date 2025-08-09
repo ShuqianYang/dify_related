@@ -9,20 +9,25 @@
 5. 后处理：解析输出内容，去除输入和思考的部分
 """
 
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# 模型路径配置 - 可以是本地路径或Hugging Face模型名称
-MODEL_PATH = "Qwen/Qwen3-8B"  # 可以修改为本地模型路径，如: "/path/to/your/local/model"
+model_path = "/mnt/ckpt-chinasatcom-2/public/Qwen/Qwen3-8B"
 
+print("正在加载模型...")
 # load the tokenizer and the model
     # 用于加载与模型相匹配的分词器
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-    # 用于加载任何"因果语言模型"
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+    # 用于加载任何“因果语言模型”
 model = AutoModelForCausalLM.from_pretrained(
-    MODEL_PATH,
+    model_path,
     torch_dtype="auto",
     device_map="auto"
 )
+print("模型加载完成！")
 
 
 # prepare the model input
@@ -57,6 +62,7 @@ generated_ids = model.generate(
     **model_inputs,
     max_new_tokens=32768
 )
+print("generated_ids:", generated_ids.shape)   # torch.Size([1, 292])
 output_ids = generated_ids[0][len(model_inputs.input_ids[0]):].tolist() 
 
 
