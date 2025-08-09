@@ -166,6 +166,12 @@ PROMOTION_PK_ANIMAL = \
     3. 所有图像中选出总分最高者
 """
 
+PROMOTION_PK_ANIMAL = \
+"""
+
+"""
+
+
 temp = \
 """
     ### 输入数据格式

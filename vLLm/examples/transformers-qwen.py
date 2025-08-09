@@ -11,14 +11,15 @@
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-model_name = "Qwen/Qwen3-8B"
+# 模型路径配置 - 可以是本地路径或Hugging Face模型名称
+MODEL_PATH = "Qwen/Qwen3-8B"  # 可以修改为本地模型路径，如: "/path/to/your/local/model"
 
 # load the tokenizer and the model
     # 用于加载与模型相匹配的分词器
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-    # 用于加载任何“因果语言模型”
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+    # 用于加载任何"因果语言模型"
 model = AutoModelForCausalLM.from_pretrained(
-    model_name,
+    MODEL_PATH,
     torch_dtype="auto",
     device_map="auto"
 )
