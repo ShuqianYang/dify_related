@@ -8,7 +8,7 @@ from openai import OpenAI
 from .promotion import *
 from .tools import  get_file_list, normalize_path
 from .pre_process import image_to_base64, contains_chinese, safe_rename
-from .params import  PARAMS
+from .params import PARAMS
 
 
 def single_inference(image_path, prompt,

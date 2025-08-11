@@ -102,6 +102,9 @@ function initializeCharts() {
         // 加载动物种类列表到筛选下拉菜单
         loadAnimalList();
         
+        // 加载行为列表到筛选下拉菜单
+        loadBehaviorList();
+        
         // 加载所有图表的初始数据
         loadAllChartsData();
         
@@ -135,7 +138,24 @@ function initializeTimeseriesChart() {
         tooltip: {
             trigger: 'axis',
             formatter: function(params) {
-                return `${params[0].axisValue}<br/>识别数量: ${params[0].value}`;
+                const fullLabel = params[0].axisValue; // 完整的标签文本
+                const value = params[0].value;
+                return `
+                    <div style="padding: 8px;">
+                        <div style="font-weight: bold; margin-bottom: 4px; color: #1890ff;">
+                            时间: ${fullLabel}
+                        </div>
+                        <div style="color: #333;">
+                            识别数量: <span style="color: #1890ff; font-weight: bold;">${value}</span>
+                        </div>
+                    </div>
+                `;
+            },
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            borderColor: '#1890ff',
+            borderWidth: 1,
+            textStyle: {
+                color: '#333'
             }
         },
         legend: {
@@ -148,16 +168,33 @@ function initializeTimeseriesChart() {
         grid: {
             left: '3%',
             right: '4%',
-            bottom: '3%',
+            bottom: '15%', // 为数据缩放滑块留出空间
             containLabel: true
         },
+        dataZoom: [], // 初始为空，将在数据加载时动态设置
         xAxis: {
             type: 'category',
             boundaryGap: false,
             data: [], // 将通过API获取数据
             axisLabel: {
                 rotate: 45, // 旋转标签避免重叠
-                color: '#1890ff'
+                color: '#1890ff',
+                interval: 'auto', // 自动计算间隔
+                formatter: function(value, index) {
+                    // 智能格式化标签
+                    if (value.includes('年') && value.includes('季度')) {
+                        // 季度格式：2023年1季度 -> 23Q1
+                        const year = value.substring(2, 4);
+                        const quarter = value.match(/(\d)季度/)[1];
+                        return `${year}Q${quarter}`;
+                    }
+                    // 日期格式：20230105 -> 01/05
+                    if (value.length === 8) {
+                        return value.substring(4, 6) + '/' + value.substring(6, 8);
+                    }
+                    // 其他格式：截断过长文本
+                    return value.length > 8 ? value.substring(0, 8) + '...' : value;
+                }
             },
             axisLine: {
                 lineStyle: {
@@ -580,6 +617,65 @@ async function loadAnimalList() {
 }
 
 /**
+ * 智能计算标签显示间隔
+ */
+function calculateSmartInterval(dataLength) {
+    if (dataLength <= 5) return 0;      // 5个以下全部显示
+    if (dataLength <= 10) return 1;     // 10个以下隔一个显示
+    if (dataLength <= 20) return 2;     // 20个以下隔两个显示
+    if (dataLength <= 50) return 4;     // 50个以下隔四个显示
+    return Math.floor(dataLength / 10);  // 其他情况显示约10个标签
+}
+
+/**
+ * 根据数据量动态调整缩放配置
+ */
+function getDynamicDataZoomConfig(dataLength) {
+    if (dataLength <= 10) {
+        // 数据少时不显示缩放滑块
+        return [];
+    } else if (dataLength <= 20) {
+        // 中等数据量，显示所有数据
+        return [
+            {
+                type: 'inside',
+                xAxisIndex: [0],
+                start: 0,
+                end: 100
+            }
+        ];
+    } else {
+        // 大量数据，显示滑块和内置缩放
+        const startPercent = Math.max(0, 100 - (1000 / dataLength));
+        return [
+            {
+                type: 'slider',
+                show: true,
+                xAxisIndex: [0],
+                start: startPercent,
+                end: 100,
+                height: 20,
+                bottom: 10,
+                textStyle: {
+                    color: '#1890ff'
+                },
+                borderColor: '#1890ff',
+                fillerColor: 'rgba(24, 144, 255, 0.2)',
+                handleStyle: {
+                    color: '#1890ff'
+                }
+            },
+            {
+                type: 'inside',
+                xAxisIndex: [0],
+                start: startPercent,
+                end: 100
+            }
+        ];
+    }
+}
+
+/**
  * 获取时间序列数据（支持动物筛选）
  * API接口：/api/timeseries-data?animal=动物名称
  * 返回格式：{status: 'success', data: [{date: "2024-01-01", count: 10, confidence: 0.95, percentage: 85.5}]}
@@ -598,9 +694,35 @@ async function loadTimeseriesData(animalFilter = null) {
             const dates = data.data.map(item => item.date);
             const counts = data.data.map(item => item.count);
             
+            // 智能调整显示策略
+            const dataLength = dates.length;
+            const smartInterval = calculateSmartInterval(dataLength);
+            const dynamicDataZoom = getDynamicDataZoomConfig(dataLength);
+            
             chartInstances.timeseriesChart.setOption({
+                dataZoom: dynamicDataZoom,
                 xAxis: {
-                    data: dates
+                    data: dates,
+                    axisLabel: {
+                        interval: smartInterval,
+                        rotate: dataLength > 20 ? 45 : 0,
+                        color: '#1890ff',
+                        formatter: function(value, index) {
+                            // 智能格式化标签
+                            if (value.includes('年') && value.includes('季度')) {
+                                // 季度格式：2023年1季度 -> 23Q1
+                                const year = value.substring(2, 4);
+                                const quarter = value.match(/(\d)季度/)[1];
+                                return `${year}Q${quarter}`;
+                            }
+                            // 日期格式：20230105 -> 01/05
+                            if (value.length === 8) {
+                                return value.substring(4, 6) + '/' + value.substring(6, 8);
+                            }
+                            // 其他格式：截断过长文本
+                            return value.length > 8 ? value.substring(0, 8) + '...' : value;
+                        }
+                    }
                 },
                 series: [{
                     data: counts
@@ -682,15 +804,60 @@ async function loadLocationData(animalFilter = null) {
 }
 
 /**
- * 获取动物活动时间分布数据（支持动物筛选）
- * API接口：/api/activity-data?animal=动物名称
- * 返回格式：{status: 'success', data: {0: 5, 1: 3, 2: 0, ..., 23: 8}}
+ * 获取行为列表（支持动物筛选）
+ * API接口：/api/behavior-list?animal=动物名称
+ * 返回格式：{status: 'success', data: ["吃竹子", "攀爬", "睡觉"]}
  */
-async function loadActivityData(animalFilter = null) {
+async function loadBehaviorList(animalFilter = null) {
     try {
-        let url = '/api/activity-data';
+        let url = '/api/behavior-list';
         if (animalFilter && animalFilter !== 'all') {
             url += `?animal=${encodeURIComponent(animalFilter)}`;
+        }
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data && data.status === 'success' && Array.isArray(data.data)) {
+            // 更新行为筛选下拉菜单
+            const behaviorSelect = document.getElementById('activityBehaviorFilter');
+            
+            // 清空现有选项（保留"所有行为"选项）
+            behaviorSelect.innerHTML = '<option value="all">所有行为</option>';
+            
+            // 添加行为选项
+            data.data.forEach(behavior => {
+                const behaviorOption = document.createElement('option');
+                behaviorOption.value = behavior;
+                behaviorOption.textContent = behavior;
+                behaviorSelect.appendChild(behaviorOption);
+            });
+        }
+    } catch (error) {
+        console.error('行为列表获取失败:', error);
+    }
+}
+
+/**
+ * 获取动物活动时间分布数据（支持动物和行为筛选）
+ * API接口：/api/activity-data?animal=动物名称&behavior=行为名称
+ * 返回格式：{status: 'success', data: {0: 5, 1: 3, 2: 0, ..., 23: 8}}
+ */
+async function loadActivityData(animalFilter = null, behaviorFilter = null) {
+    try {
+        let url = '/api/activity-data';
+        const params = [];
+        
+        if (animalFilter && animalFilter !== 'all') {
+            params.push(`animal=${encodeURIComponent(animalFilter)}`);
+        }
+        
+        if (behaviorFilter && behaviorFilter !== 'all') {
+            params.push(`behavior=${encodeURIComponent(behaviorFilter)}`);
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
         }
         
         const response = await fetch(url);
@@ -834,15 +1001,25 @@ function onAnimalTimeFilterChange() {
 }
 
 /**
- * 活动时间图表动物筛选器变化回调
+ * 活动时间图表筛选器变化回调（支持动物和行为筛选）
  */
 function onActivityFilterChange() {
-    const select = document.getElementById('activityAnimalFilter');
-    const selectedAnimal = select.value;
-    console.log('活动时间图表筛选器变化:', selectedAnimal);
+    const animalSelect = document.getElementById('activityAnimalFilter');
+    const behaviorSelect = document.getElementById('activityBehaviorFilter');
+    const selectedAnimal = animalSelect.value;
+    const selectedBehavior = behaviorSelect.value;
+    
+    console.log('活动时间图表筛选器变化 - 动物:', selectedAnimal, '行为:', selectedBehavior);
+    
+    // 当动物筛选变化时，重新加载行为列表
+    if (event && event.target === animalSelect) {
+        loadBehaviorList(selectedAnimal);
+        // 重置行为筛选为"所有行为"
+        behaviorSelect.value = 'all';
+    }
     
     // 重新加载活动时间数据
-    loadActivityData(selectedAnimal);
+    loadActivityData(selectedAnimal, selectedBehavior);
 }
 
 // 页面DOM加载完成后开始加载ECharts库。调用 loadECharts()"的事件处理函数，开始运行

@@ -156,7 +156,7 @@ def get_location_data(animal_filter=None):
 
 
 def get_time_series_data(animal_filter=None):
-    """从image_info数据库获取时间序列数据
+    """从image_info数据库获取时间序列数据（按季度聚合）
     
     Args:
         animal_filter (str, optional): 动物种类筛选条件，如果为None则显示所有动物
@@ -167,14 +167,25 @@ def get_time_series_data(animal_filter=None):
         connection = sqlite3.connect(db_path)
         
         cursor = connection.cursor()
-        # 构建SQL查询，根据是否有动物筛选条件
+        # 构建SQL查询，按季度聚合数据
         if animal_filter and animal_filter != 'all':
             sql = f"""
-            SELECT date, SUM(count) as total_count, AVG(confidence) as avg_confidence, AVG(percentage) as avg_percentage 
+            SELECT 
+                substr(date, 1, 4) as year,
+                CASE 
+                    WHEN substr(date, 5, 2) IN ('01', '02', '03') THEN '1季度'
+                    WHEN substr(date, 5, 2) IN ('04', '05', '06') THEN '2季度'
+                    WHEN substr(date, 5, 2) IN ('07', '08', '09') THEN '3季度'
+                    WHEN substr(date, 5, 2) IN ('10', '11', '12') THEN '4季度'
+                    ELSE '未知'
+                END as quarter,
+                SUM(count) as total_count, 
+                AVG(confidence) as avg_confidence, 
+                AVG(percentage) as avg_percentage 
             FROM {table_name} 
             WHERE date IS NOT NULL AND date != '' AND animal = ?
-            GROUP BY date 
-            ORDER BY date DESC 
+            GROUP BY year, quarter
+            ORDER BY year DESC, quarter DESC 
             LIMIT 20
             """
             cursor.execute(sql, (animal_filter,))
@@ -195,27 +206,39 @@ def get_time_series_data(animal_filter=None):
         #   LIMIT 20 只取前 20 条结果，也就是最近的 20 天的统计数据。
         else:
             sql = f"""
-            SELECT date, SUM(count) as total_count, AVG(confidence) as avg_confidence, AVG(percentage) as avg_percentage 
+            SELECT 
+                substr(date, 1, 4) as year,
+                CASE 
+                    WHEN substr(date, 5, 2) IN ('01', '02', '03') THEN '1季度'
+                    WHEN substr(date, 5, 2) IN ('04', '05', '06') THEN '2季度'
+                    WHEN substr(date, 5, 2) IN ('07', '08', '09') THEN '3季度'
+                    WHEN substr(date, 5, 2) IN ('10', '11', '12') THEN '4季度'
+                    ELSE '未知'
+                END as quarter,
+                SUM(count) as total_count, 
+                AVG(confidence) as avg_confidence, 
+                AVG(percentage) as avg_percentage 
             FROM {table_name} 
             WHERE date IS NOT NULL AND date != '' 
-            GROUP BY date 
-            ORDER BY date DESC 
+            GROUP BY year, quarter
+            ORDER BY year DESC, quarter DESC 
             LIMIT 20
             """
             cursor.execute(sql)
         result = cursor.fetchall()
         
-        # 转换为字典列表
+        # 转换为字典列表，格式化为"2021年1季度"的形式
         data = []
         for row in result:
+            quarter_label = f"{row[0]}年{row[1]}"
             data.append({
-                'date': row[0],
-                'count': row[1],
-                'confidence': round(float(row[2]) if row[2] else 0, 2),
-                'percentage': round(float(row[3]) if row[3] else 0, 2)
+                'date': quarter_label,
+                'count': row[2],
+                'confidence': round(float(row[3]) if row[3] else 0, 2),
+                'percentage': round(float(row[4]) if row[4] else 0, 2)
             })
         
-        # 反转数据，使时间顺序正确
+        # 反转数据，使时间顺序正确（从早到晚）
         data.reverse()
         
         return {'status': 'success', 'data': data}
@@ -227,8 +250,50 @@ def get_time_series_data(animal_filter=None):
             connection.close()
 
 
-def get_activity_data(animal_filter=None):
-    """从image_info数据库获取动物活动时间分布数据"""
+def get_behavior_list(animal_filter=None):
+    """从image_info数据库获取行为列表"""
+    try:
+        db_path = get_db_path()
+        table_name = get_table_name()
+        connection = sqlite3.connect(db_path)
+        
+        cursor = connection.cursor()
+        # 构建SQL查询，获取行为列表
+        if animal_filter and animal_filter != 'all':
+            sql = f"""
+            SELECT DISTINCT behavior 
+            FROM {table_name} 
+            WHERE animal = ? AND behavior IS NOT NULL AND behavior != '' 
+            ORDER BY behavior;
+            """
+            cursor.execute(sql, (animal_filter,))
+        else:
+            sql = f"""
+            SELECT DISTINCT behavior 
+            FROM {table_name} 
+            WHERE behavior IS NOT NULL AND behavior != '' 
+            ORDER BY behavior;
+            """
+            cursor.execute(sql)
+        
+        result = cursor.fetchall()
+        
+        # 转换为列表
+        behaviors = [row[0] for row in result]
+        
+        return {'status': 'success', 'data': behaviors}
+        
+    except sqlite3.Error as e:
+        return {"status": "error", "message": f"数据库错误: {e}"}
+    except Exception as e:
+        return {"status": "error", "message": f"系统错误: {str(e)}"}
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
+
+def get_activity_data(animal_filter=None, behavior_filter=None):
+    """从image_info数据库获取动物活动时间分布数据（支持动物和行为筛选）"""
     try:
         db_path = get_db_path()
         table_name = get_table_name()
@@ -237,28 +302,31 @@ def get_activity_data(animal_filter=None):
         cursor = connection.cursor()
         # 构建SQL查询，按小时统计动物活动
         # 时间格式是 HH:MM，使用SQLite的时间函数解析
+        
+        # 构建WHERE条件
+        where_conditions = ["time IS NOT NULL AND time != ''"]
+        params = []
+        
         if animal_filter and animal_filter != 'all':
-            sql = f"""
-            SELECT 
-                CAST(strftime('%H', time) AS INTEGER) as hour,
-                SUM(count) as total_count
-            FROM {table_name} 
-            WHERE animal = ? AND time IS NOT NULL AND time != ''
-            GROUP BY CAST(strftime('%H', time) AS INTEGER)
-            ORDER BY hour;
-            """
-            cursor.execute(sql, (animal_filter,))
-        else:
-            sql = f"""
-            SELECT 
-                CAST(strftime('%H', time) AS INTEGER) as hour,
-                SUM(count) as total_count
-            FROM {table_name} 
-            WHERE time IS NOT NULL AND time != ''
-            GROUP BY CAST(strftime('%H', time) AS INTEGER)
-            ORDER BY hour;
-            """
-            cursor.execute(sql)
+            where_conditions.append("animal = ?")
+            params.append(animal_filter)
+            
+        if behavior_filter and behavior_filter != 'all':
+            where_conditions.append("behavior = ?")
+            params.append(behavior_filter)
+        
+        where_clause = " AND ".join(where_conditions)
+        
+        sql = f"""
+        SELECT 
+            CAST(strftime('%H', time) AS INTEGER) as hour,
+            SUM(count) as total_count
+        FROM {table_name} 
+        WHERE {where_clause}
+        GROUP BY CAST(strftime('%H', time) AS INTEGER)
+        ORDER BY hour;
+        """
+        cursor.execute(sql, params)
         
         result = cursor.fetchall()
         

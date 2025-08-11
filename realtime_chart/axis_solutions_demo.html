@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>横轴标签优化方案演示</title>
+    <script src="libs/BootCDN_echarts.min.js"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1890ff;
+        }
+        .solution-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .solution-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1890ff;
+            margin-bottom: 10px;
+        }
+        .solution-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .chart-container {
+            height: 300px;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #40a9ff;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>横轴标签显示优化方案演示</h1>
+            <p>解决横轴标签过长导致的显示问题的多种方案对比</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="loadSampleData('short')">短标签数据</button>
+            <button class="btn" onclick="loadSampleData('long')">长标签数据</button>
+            <button class="btn" onclick="loadSampleData('many')">大量数据</button>
+            <button class="btn" onclick="loadSampleData('quarter')">季度数据</button>
+        </div>
+
+        <!-- 方案1：原始显示 -->
+        <div class="solution-card">
+            <div class="solution-title">方案1：原始显示（问题演示）</div>
+            <div class="solution-description">
+                不做任何处理的原始标签显示，可以看到标签重叠和显示不全的问题。
+            </div>
+            <div id="chart1" class="chart-container"></div>
+        </div>
+
+        <!-- 方案2：智能间隔 -->
+        <div class="solution-card">
+            <div class="solution-title">方案2：智能间隔显示</div>
+            <div class="solution-description">
+                根据数据量自动计算显示间隔，避免标签重叠。数据少时全部显示，数据多时智能跳过。
+            </div>
+            <div id="chart2" class="chart-container"></div>
+        </div>
+
+        <!-- 方案3：标签格式化 -->
+        <div class="solution-card">
+            <div class="solution-title">方案3：标签格式化 + 旋转</div>
+            <div class="solution-description">
+                对标签进行智能格式化（如：2023年1季度 → 23Q1），并根据需要旋转标签。
+            </div>
+            <div id="chart3" class="chart-container"></div>
+        </div>
+
+        <!-- 方案4：数据缩放 -->
+        <div class="solution-card">
+            <div class="solution-title">方案4：数据缩放滑块</div>
+            <div class="solution-description">
+                添加缩放滑块，用户可以选择查看特定时间段的数据，支持鼠标滚轮缩放。
+            </div>
+            <div id="chart4" class="chart-container"></div>
+        </div>
+
+        <!-- 方案5：综合优化 -->
+        <div class="solution-card">
+            <div class="solution-title">方案5：综合优化方案</div>
+            <div class="solution-description">
+                结合智能间隔、标签格式化、动态缩放和增强工具提示的综合解决方案。
+            </div>
+            <div id="chart5" class="chart-container"></div>
+        </div>
+
+        <!-- 对比展示 -->
+        <div class="solution-card">
+            <div class="solution-title">效果对比</div>
+            <div class="comparison-grid">
+                <div>
+                    <h4>优化前</h4>
+                    <div id="chartBefore" class="chart-container"></div>
+                </div>
+                <div>
+                    <h4>优化后</h4>
+                    <div id="chartAfter" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 图表实例
+        const charts = {};
+        
+        // 示例数据集
+        const sampleData = {
+            short: [
+                {date: '1月', count: 10},
+                {date: '2月', count: 15},
+                {date: '3月', count: 12},
+                {date: '4月', count: 18},
+                {date: '5月', count: 20}
+            ],
+            long: [
+                {date: '2023年1月份数据统计', count: 10},
+                {date: '2023年2月份数据统计', count: 15},
+                {date: '2023年3月份数据统计', count: 12},
+                {date: '2023年4月份数据统计', count: 18},
+                {date: '2023年5月份数据统计', count: 20},
+                {date: '2023年6月份数据统计', count: 25},
+                {date: '2023年7月份数据统计', count: 22},
+                {date: '2023年8月份数据统计', count: 28}
+            ],
+            many: Array.from({length: 30}, (_, i) => ({
+                date: `2023${String(i + 1).padStart(2, '0')}${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`,
+                count: Math.floor(Math.random() * 50) + 10
+            })),
+            quarter: [
+                {date: '2021年1季度', count: 45},
+                {date: '2021年2季度', count: 52},
+                {date: '2021年3季度', count: 48},
+                {date: '2021年4季度', count: 65},
+                {date: '2022年1季度', count: 58},
+                {date: '2022年2季度', count: 71},
+                {date: '2022年3季度', count: 63},
+                {date: '2022年4季度', count: 78},
+                {date: '2023年1季度', count: 82},
+                {date: '2023年2季度', count: 89},
+                {date: '2023年3季度', count: 76},
+                {date: '2023年4季度', count: 94}
+            ]
+        };
+
+        // 初始化所有图表
+        function initCharts() {
+            const chartIds = ['chart1', 'chart2', 'chart3', 'chart4', 'chart5', 'chartBefore', 'chartAfter'];
+            chartIds.forEach(id => {
+                charts[id] = echarts.init(document.getElementById(id));
+            });
+        }
+
+        // 智能间隔计算
+        function calculateSmartInterval(dataLength) {
+            if (dataLength <= 5) return 0;
+            if (dataLength <= 10) return 1;
+            if (dataLength <= 20) return 2;
+            return Math.floor(dataLength / 8);
+        }
+
+        // 标签格式化
+        function formatLabel(value) {
+            if (value.includes('年') && value.includes('季度')) {
+                const year = value.substring(2, 4);
+                const quarter = value.match(/(\d)季度/)[1];
+                return `${year}Q${quarter}`;
+            }
+            if (value.length === 8) {
+                return value.substring(4, 6) + '/' + value.substring(6, 8);
+            }
+            return value.length > 8 ? value.substring(0, 8) + '...' : value;
+        }
+
+        // 加载示例数据
+        function loadSampleData(type) {
+            const data = sampleData[type];
+            const dates = data.map(item => item.date);
+            const counts = data.map(item => item.count);
+
+            // 方案1：原始显示
+            charts.chart1.setOption({
+                title: { text: '原始显示', left: 'center' },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { rotate: 0 }
+                },
+                yAxis: { type: 'value' },
+                series: [{ type: 'line', data: counts }]
+            });
+
+            // 方案2：智能间隔
+            charts.chart2.setOption({
+                title: { text: '智能间隔', left: 'center' },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { 
+                        interval: calculateSmartInterval(dates.length),
+                        rotate: 0 
+                    }
+                },
+                yAxis: { type: 'value' },
+                series: [{ type: 'line', data: counts }]
+            });
+
+            // 方案3：格式化 + 旋转
+            charts.chart3.setOption({
+                title: { text: '格式化 + 旋转', left: 'center' },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { 
+                        rotate: 45,
+                        formatter: formatLabel
+                    }
+                },
+                yAxis: { type: 'value' },
+                series: [{ type: 'line', data: counts }]
+            });
+
+            // 方案4：数据缩放
+            const needZoom = dates.length > 10;
+            charts.chart4.setOption({
+                title: { text: '数据缩放', left: 'center' },
+                dataZoom: needZoom ? [{
+                    type: 'slider',
+                    start: 50,
+                    end: 100,
+                    height: 20
+                }, {
+                    type: 'inside'
+                }] : [],
+                grid: { bottom: needZoom ? '15%' : '10%' },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { rotate: 0 }
+                },
+                yAxis: { type: 'value' },
+                series: [{ type: 'line', data: counts }]
+            });
+
+            // 方案5：综合优化
+            charts.chart5.setOption({
+                title: { text: '综合优化', left: 'center' },
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        return `时间: ${params[0].axisValue}<br/>数量: ${params[0].value}`;
+                    }
+                },
+                dataZoom: needZoom ? [{
+                    type: 'slider',
+                    start: 70,
+                    end: 100,
+                    height: 20
+                }, {
+                    type: 'inside'
+                }] : [],
+                grid: { bottom: needZoom ? '15%' : '10%' },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { 
+                        interval: calculateSmartInterval(dates.length),
+                        rotate: dates.length > 10 ? 45 : 0,
+                        formatter: formatLabel
+                    }
+                },
+                yAxis: { type: 'value' },
+                series: [{ 
+                    type: 'line', 
+                    data: counts,
+                    smooth: true,
+                    areaStyle: {
+                        color: 'rgba(24, 144, 255, 0.1)'
+                    }
+                }]
+            });
+
+            // 对比图表
+            charts.chartBefore.setOption({
+                title: { text: '优化前', left: 'center', textStyle: { fontSize: 14 } },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { rotate: 0, fontSize: 10 }
+                },
+                yAxis: { type: 'value' },
+                series: [{ type: 'line', data: counts }]
+            });
+
+            charts.chartAfter.setOption({
+                title: { text: '优化后', left: 'center', textStyle: { fontSize: 14 } },
+                xAxis: {
+                    type: 'category',
+                    data: dates,
+                    axisLabel: { 
+                        interval: calculateSmartInterval(dates.length),
+                        rotate: 45,
+                        formatter: formatLabel,
+                        fontSize: 10
+                    }
+                },
+                yAxis: { type: 'value' },
+                series: [{ 
+                    type: 'line', 
+                    data: counts,
+                    smooth: true,
+                    areaStyle: { color: 'rgba(24, 144, 255, 0.1)' }
+                }]
+            });
+        }
+
+        // 页面加载完成后初始化
+        window.onload = function() {
+            initCharts();
+            loadSampleData('quarter'); // 默认加载季度数据
+        };
+
+        // 响应式处理
+        window.onresize = function() {
+            Object.values(charts).forEach(chart => {
+                chart.resize();
+            });
+        };
+    </script>
+</body>
+</html>
