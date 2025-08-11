@@ -8,16 +8,20 @@
 4. 推理：进行回答生成
 5. 后处理：解析输出内容，去除输入和思考的部分
 """
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 from modelscope import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 from qwen_vl_utils import process_vision_info
+
+MODEL_PATH = "/mnt/ckpt-chinasatcom-2/public/Qwen/Qwen2.5-VL-3B-Instruct"
 # qwen_vl_utils.process_vision_info：一个工具函数，用于从对话消息中提取图像和视频信息。
 
 #########################################################################################################
 ## 1. 加载模型和处理器
 # default: Load the model on the available device(s)
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-    "Qwen/Qwen2.5-VL-32B-Instruct", torch_dtype="auto", device_map="auto"
+    MODEL_PATH, torch_dtype="auto", device_map="auto"
 )
 
 # We recommend enabling flash_attention_2 for better acceleration and memory saving, especially in multi-image and video scenarios.
@@ -30,7 +34,7 @@ model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
 # )
 
 # default processer
-processor = AutoProcessor.from_pretrained("Qwen/Qwen2.5-VL-32B-Instruct")
+processor = AutoProcessor.from_pretrained(MODEL_PATH)
 
 # The default range for the number of visual tokens per image in the model is 4-16384.
 # You can set min_pixels and max_pixels according to your needs, such as a token range of 256-1280, to balance performance and cost.
@@ -51,7 +55,7 @@ messages = [
                 "type": "image",
                 "image": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg",
             },
-            {"type": "text", "text": "Describe this image."},
+            {"type": "text", "text": "请描述这张图片。"},
         ],
     }
 ]
@@ -83,15 +87,32 @@ inputs = inputs.to("cuda")
 # Inference: Generation of the output
 generated_ids = model.generate(**inputs, max_new_tokens=128)
 
+output = processor.batch_decode(
+    generated_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False
+)
+print("output:", output)
+"""
+output: 
+['system\nYou are a helpful assistant.\nuser\n请描述这张图片。
+\nassistant\n这张图片展示了一位年轻女子和她的金毛犬在海滩上互动的温馨场景。背景是广阔的海洋，天空呈现出柔和的色彩，可能是日出或日落时分。沙滩上留下了许多脚印，显得非常自然和宁静。
+\n\n女子穿着格子衬衫和黑色裤子，坐在沙滩上，面带微笑地看着她的金毛犬。金毛犬戴着项圈，看起来很温顺，正用前爪轻轻拍打着女子的手掌。两人之间的互动充满了爱意和欢乐，整个画面给人一种温暖、和谐的感觉。']
+"""
+
 #########################################################################################################
 ## 5. 后处理
 # 通过切片只保留模型新生成的 ID。
 generated_ids_trimmed = [
     out_ids[len(in_ids) :] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
 ]
+
 # 解码生成的 ID 序列为文本
 output_text = processor.batch_decode(
     generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
 )
+
 # skip_special_tokens表示跳过特殊标记
-print(output_text)
+print("output_text:", output_text)
+"""
+output_text: ['这张图片展示了一位年轻女子和她的金毛犬在海滩上互动的温馨场景。背景是广阔的海洋，天空呈现出柔和的色彩，可能是日出或日落时分。沙滩上留下了许多脚印，显得非常自然和宁静。
+\n\n女子穿着格子衬衫和黑色裤子，坐在沙滩上，面带微笑地看着她的金毛犬。金毛犬戴着项圈，看起来很温顺，正用前爪轻轻拍打着女子的手掌。两人之间的互动充满了爱意和欢乐，整个画面给人一种温暖、和谐的感觉。']
+"""
