@@ -1,0 +1,15 @@
+2025-08-11 20:21:25,514 INFO [default] [KNOWHERE][SetBlasThreshold][] Set faiss::distance_compute_blas_threshold to 16384
+2025-08-11 20:21:25,514 INFO [default] [KNOWHERE][SetEarlyStopThreshold][] Set faiss::early_stop_threshold to 0
+2025-08-11 20:21:25,514 INFO [default] [KNOWHERE][SetStatisticsLevel][] Set knowhere::STATISTICS_LEVEL to 0
+2025-08-11 20:21:25,515 DEBUG [default] [SERVER][operator()][] Config easylogging with yaml file: E:\ZhiJiang\Code\2_DifyRelated\Milvus_db/configs/easylogging.yaml
+2025-08-11 20:21:25,515 INFO [default] [KNOWHERE][SetSimdType][] FAISS expect simdType::AUTO
+2025-08-11 20:21:25,516 INFO [default] [KNOWHERE][SetSimdType][] FAISS hook REF
+2025-08-11 20:21:25,516 DEBUG [default] [SEGCORE][SetIndexSliceSize][] set config index slice size(byte): 16777216
+2025-08-11 20:21:25,517 DEBUG [default] [SEGCORE][SetThreadCoreCoefficient][] set thread pool core coefficient: 10
+2025-08-11 20:21:25,518 INFO [default] [KNOWHERE][SetBlasThreshold][] Set faiss::distance_compute_blas_threshold to 16384
+2025-08-11 20:21:25,518 INFO [default] [KNOWHERE][SetEarlyStopThreshold][] Set faiss::early_stop_threshold to 0
+2025-08-11 20:21:25,518 INFO [default] [KNOWHERE][SetStatisticsLevel][] Set knowhere::STATISTICS_LEVEL to 0
+2025-08-11 20:21:25,519 DEBUG [default] [SERVER][operator()][] Config easylogging with yaml file: E:\ZhiJiang\Code\2_DifyRelated\Milvus_db/configs/easylogging.yaml
+2025-08-11 20:21:25,519 DEBUG [default] [SEGCORE][SegcoreSetSimdType][] set config simd_type: auto
+2025-08-11 20:21:25,519 INFO [default] [KNOWHERE][SetSimdType][] FAISS expect simdType::AUTO
+2025-08-11 20:21:25,519 INFO [default] [KNOWHERE][SetSimdType][] FAISS hook REF
