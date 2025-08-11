@@ -18,7 +18,100 @@
 """
 
 import sqlite3
+import os
 from db_config import get_db_path, get_table_name
+
+# ==================== 动物保护级别查询功能 ====================
+
+def get_animal_protection_level(animal_name):
+    """
+    根据动物名称查询保护级别
+    
+    Args:
+        animal_name (str): 动物名称
+    
+    Returns:
+        str: 保护级别（如"一级"、"二级"等），如果未找到则返回"未知"
+    """
+    try:
+        # 连接保护级别数据库
+        protected_db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Database", "protected_wildlife.db")
+        connection = sqlite3.connect(protected_db_path)
+        cursor = connection.cursor()
+        
+        # 查询保护级别
+        sql = """
+        SELECT protection_level 
+        FROM protected_species 
+        WHERE species_name = ? OR scientific_name = ?
+        LIMIT 1
+        """
+        
+        cursor.execute(sql, (animal_name, animal_name))
+        result = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        if result:
+            return result[0]
+        else:
+            return "未知"
+            
+    except Exception as e:
+        print(f"查询动物保护级别时出错: {e}")
+        return "未知"
+
+
+def get_multiple_animals_protection_levels(animal_names):
+    """
+    批量查询多个动物的保护级别
+    
+    Args:
+        animal_names (list): 动物名称列表
+    
+    Returns:
+        dict: 动物名称到保护级别的映射字典
+    """
+    try:
+        if not animal_names:
+            return {}
+            
+        # 连接保护级别数据库
+        protected_db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Database", "protected_wildlife.db")
+        connection = sqlite3.connect(protected_db_path)
+        cursor = connection.cursor()
+        
+        # 构建批量查询SQL
+        placeholders = ','.join(['?' for _ in animal_names])
+        sql = f"""
+        SELECT species_name, protection_level 
+        FROM protected_species 
+        WHERE species_name IN ({placeholders})
+        """
+        
+        cursor.execute(sql, animal_names)
+        results = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        # 构建结果字典
+        protection_levels = {}
+        for animal_name, protection_level in results:
+            protection_levels[animal_name] = protection_level
+            
+        # 为未找到的动物设置默认值
+        for animal_name in animal_names:
+            if animal_name not in protection_levels:
+                protection_levels[animal_name] = "未知"
+                
+        return protection_levels
+        
+    except Exception as e:
+        print(f"批量查询动物保护级别时出错: {e}")
+        # 返回默认值字典
+        return {animal_name: "未知" for animal_name in animal_names}
 
 # ==================== 动物列表和地点列表功能 ====================
 
@@ -115,7 +208,7 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
         connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
         
-        # 构建SQL查询 - 直接使用经纬度坐标
+        # 构建SQL查询
         table_name = get_table_name()
         base_sql = f"""
         SELECT 
@@ -205,7 +298,7 @@ def get_map_data(animal_type=None, start_date=None, end_date=None):
         return []
 
 
-def get_location_detail(longitude=None, latitude=None, location=None, start_date=None, end_date=None, limit=100):
+def get_location_detail(longitude=None, latitude=None, location=None, start_date=None, end_date=None, animal_type=None, limit=100):
     """
     获取指定坐标或地点的详细信息，包括最新图片
     
@@ -215,6 +308,7 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         location (str, optional): 地点名称（备用）
         start_date (str, optional): 开始日期 (YYYY-MM-DD)
         end_date (str, optional): 结束日期 (YYYY-MM-DD)
+        animal_type (str, optional): 动物类型筛选
         limit (int): 返回记录数量限制
     
     Returns:
@@ -279,6 +373,11 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
             base_sql += " AND date <= ?"
             params.append(end_date_formatted)
         
+        # 添加动物类型筛选条件
+        if animal_type and animal_type != 'all':
+            base_sql += " AND animal = ?"
+            params.append(animal_type)
+        
         # 按日期和时间排序，获取最新的记录
         base_sql += " ORDER BY date DESC, time DESC LIMIT ?"
         params.append(limit)
@@ -289,9 +388,14 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         # 处理结果 - 按动物类型分组，获取每种动物的最新图片和描述
         animal_latest_data = {} # 一条记录用字典保存
         detail_data = []        # 所有记录用列表保存
+        animal_names = set()    # 收集所有动物名称，用于批量查询保护级别
         
         for row in results:
             animal, caption, time, location, lng, lat, image_id, count, date, path, media_type = row
+            
+            # 收集动物名称
+            if animal:
+                animal_names.add(animal)
             
             # 为每种动物保存最新的媒体文件和描述信息（因为返回的result是按照时间日期降序排列的，所以第一个记录就是最新的）
             if animal not in animal_latest_data:
@@ -320,10 +424,22 @@ def get_location_detail(longitude=None, latitude=None, location=None, start_date
         cursor.close()
         connection.close()
         
+        # 批量查询所有动物的保护级别
+        protection_levels = get_multiple_animals_protection_levels(list(animal_names))
+        
+        # 将保护级别信息添加到animal_latest_data中
+        for animal in animal_latest_data:
+            animal_latest_data[animal]['protection_level'] = protection_levels.get(animal, "未知")
+        
+        # 将保护级别信息添加到detail_data中
+        for detail in detail_data:
+            detail['protection_level'] = protection_levels.get(detail['animal_type'], "未知")
+        
         # 将最新图片信息添加到返回数据中
         return {
             'details': detail_data,
-            'latest_by_animal': animal_latest_data
+            'latest_by_animal': animal_latest_data,
+            'protection_levels': protection_levels  # 添加保护级别映射
         }
         
     except Exception as e:

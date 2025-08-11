@@ -117,8 +117,25 @@ class AnimalMapSystem {
                     type: 'scatter',
                     coordinateSystem: 'geo',
                     data: [],
-                    // 根据数据值动态调整点的大小
-                    symbolSize: (val) => Math.max(10, Math.min(35, val[2] * 2.5)),
+                    // 根据数据值动态调整点的大小 - 智能比例缩放
+                    symbolSize: (val) => {
+                        const count = val[2];
+                        // 动态范围：基于实际数据分布的智能缩放
+                        // 小数量：8-15px，中等数量：15-25px，大数量：25-40px
+                        const minSize = 8;
+                        const maxSize = 40;
+                        
+                        if (count <= 10) {
+                            // 小数量：线性缩放
+                            return minSize + (count / 10) * 7; // 8-15px
+                        } else if (count <= 100) {
+                            // 中等数量：平方根缩放
+                            return 15 + Math.sqrt(count - 10) * 1.05; // 15-25px
+                        } else {
+                            // 大数量：对数缩放
+                            return 25 + Math.log10(count - 90) * 7.5; // 25-40px
+                        }
+                    },
                     itemStyle: {
                         color: '#1890ff',
                         shadowBlur: 15,
@@ -329,6 +346,25 @@ class AnimalMapSystem {
             animal_types: item.animal_types
         }));
 
+        // 调试信息：显示圆点大小计算结果
+        console.log('🎯 圆点大小计算结果:');
+        data.slice(0, 5).forEach(item => {
+            const count = item.value;
+            const minSize = 8;
+            const maxSize = 40;
+            
+            let finalSize;
+            if (count <= 10) {
+                finalSize = minSize + (count / 10) * 7;
+            } else if (count <= 100) {
+                finalSize = 15 + Math.sqrt(count - 10) * 1.05;
+            } else {
+                finalSize = 25 + Math.log10(count - 90) * 7.5;
+            }
+            
+            console.log(`📍 ${item.name}: 数量=${count}, 圆点大小=${finalSize.toFixed(1)}px`);
+        });
+
         this.mapChart.setOption({
             series: [{
                 data: seriesData
@@ -390,11 +426,17 @@ class AnimalMapSystem {
                 params.append('end_date', endDate);
             }
             
+            // 添加动物类型筛选参数
+            const animalType = document.getElementById('animalSelect').value;
+            if (animalType && animalType !== 'all') {
+                params.append('animal_type', animalType);
+            }
+            
             // 请求详情数据
             const response = await fetch(`/api/location-detail?${params}`);
             const data = await response.json();
             
-            this.displayLocationDetail(location, data, longitude, latitude);
+            this.displayLocationDetail(location, data, longitude, latitude, animalType);
             
         } catch (error) {
             console.error('加载地点详情失败:', error);
@@ -408,8 +450,8 @@ class AnimalMapSystem {
      * 显示地点详情弹窗
      * 处理详情数据并构建弹窗内容
      */
-    displayLocationDetail(location, data, longitude, latitude) {
-        console.log('🔍 显示弹窗详情:', { location, data, longitude, latitude });
+    displayLocationDetail(location, data, longitude, latitude, animalType) {
+        console.log('🔍 显示弹窗详情:', { location, data, longitude, latitude, animalType });
         
         const modal = document.getElementById('detailModal');
         const modalTitle = document.getElementById('modalTitle');
@@ -419,11 +461,19 @@ class AnimalMapSystem {
         modalTitle.textContent = location || '监测点详情';
         
         // 处理新的数据结构
-        const details = data.details || [];
+        let details = data.details || [];
         const latestByAnimal = data.latest_by_animal || {};
         
+        // 根据动物类型筛选条件过滤数据
+        if (animalType && animalType !== 'all') {
+            details = details.filter(item => item.animal_type === animalType);
+        }
+        
         if (details.length === 0) {
-            modalContent.innerHTML = '<p style="text-align: center; color: #666;">暂无详细数据</p>';
+            const filterMessage = animalType && animalType !== 'all' 
+                ? `暂无 ${animalType} 的详细数据` 
+                : '暂无详细数据';
+            modalContent.innerHTML = `<p style="text-align: center; color: #666;">${filterMessage}</p>`;
         } else {
             // 获取当前筛选的时间段
             const startDate = document.getElementById('startDate').value;
@@ -468,8 +518,13 @@ class AnimalMapSystem {
                     <h4>🐾 检测到的动物：</h4>
             `;
             
-            // 为每种动物生成详情卡片
+            // 为每种动物生成详情卡片（只显示筛选后的动物）
             Object.keys(animalCounts).forEach(animal => {
+                // 如果有动物类型筛选，只显示匹配的动物
+                if (animalType && animalType !== 'all' && animal !== animalType) {
+                    return;
+                }
+                
                 const count = animalCounts[animal];
                 const caption = latestCaptions[animal] || '暂无描述';
                 const latestData = latestByAnimal[animal] || {};
@@ -478,6 +533,7 @@ class AnimalMapSystem {
                 const latestCaption = latestData.latest_caption || caption;
                 const latestTime = latestData.latest_time;
                 const latestDate = latestData.latest_date;
+                const protectionLevel = latestData.protection_level || '未知';
                 
                 // 根据媒体类型生成不同的HTML内容
                 let mediaContent = '';
@@ -509,11 +565,36 @@ class AnimalMapSystem {
                     }
                 }
                 
+                // 根据保护级别设置不同的样式和图标
+                const getProtectionLevelStyle = (level) => {
+                    switch(level) {
+                        case '一级':
+                            return { icon: '🔴', color: '#ff4d4f', bgColor: '#fff2f0' };
+                        case '二级':
+                            return { icon: '🟡', color: '#faad14', bgColor: '#fffbe6' };
+                        default:
+                            return { icon: '⚪', color: '#8c8c8c', bgColor: '#f5f5f5' };
+                    }
+                };
+                
+                const protectionStyle = getProtectionLevelStyle(protectionLevel);
+                
                 content += `
                     <div class="animal-detail">
                         <div class="animal-header">
                             <span class="animal-name">🦌 ${animal}</span>
                             <span class="animal-count">监测总数：${count}</span>
+                        </div>
+                        <div class="protection-level" style="
+                            background-color: ${protectionStyle.bgColor}; 
+                            color: ${protectionStyle.color}; 
+                            padding: 6px 12px; 
+                            border-radius: 6px; 
+                            margin: 8px 0; 
+                            font-weight: 600;
+                            border: 1px solid ${protectionStyle.color}20;
+                        ">
+                            ${protectionStyle.icon} 保护级别：${protectionLevel}
                         </div>
                         ${mediaContent}
                         <div class="latest-info">

@@ -74,7 +74,7 @@ def api_map_data():
         return jsonify([]), 500
 
 
-@app.route('/api/location-detail')  # 待修改
+@app.route('/api/location-detail')
 def api_location_detail():
     """
     获取地点详情API
@@ -84,6 +84,7 @@ def api_location_detail():
     - location: 地点名称 (备用)
     - start_date: 开始日期 (YYYY-MM-DD)
     - end_date: 结束日期 (YYYY-MM-DD)
+    - animal_type: 动物类型筛选 (可选)
     - limit: 返回记录数量限制 (可选，默认100)
     """
     try:
@@ -92,9 +93,10 @@ def api_location_detail():
         location = request.args.get('location')
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
+        animal_type = request.args.get('animal_type')
         limit = request.args.get('limit', 100, type=int)
         
-        print(f"🔍 API调用参数: longitude={longitude}, latitude={latitude}, location={location}, start_date={start_date}, end_date={end_date}")
+        print(f"🔍 API调用参数: longitude={longitude}, latitude={latitude}, location={location}, start_date={start_date}, end_date={end_date}, animal_type={animal_type}")
         
         # 检查是否提供了有效的查询参数
         if longitude is None or latitude is None:
@@ -107,6 +109,7 @@ def api_location_detail():
             location=location,
             start_date=start_date,
             end_date=end_date,
+            animal_type=animal_type,
             limit=limit
         )
         print(f"📊 API返回数据: {data}")
